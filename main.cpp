@@ -17,7 +17,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
     // ★ 曲フォルダを指定（あなたの環境に合わせて変更）
     MusicSelectUI selectUI("Musics");
-    selectUI.LoadFont("font.ttf", 32);
+    selectUI.LoadFont("Fonts/BIZ-UDMinchoM.ttc", 32);
     selectUI.LoadMusicList();
 
     GameScene* game = nullptr;
