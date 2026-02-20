@@ -10,6 +10,8 @@ struct Note
     float time;
     float endTime;
     int type;
+
+    bool judged = false;
 };
 
 class NotesData
