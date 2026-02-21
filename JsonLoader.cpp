@@ -10,6 +10,8 @@
 //========================================
 
 #include "JsonLoader.h"
+#include <windows.h>
+#include <string>
 
 // @brief デフォルトコンストラクタ
 JsonLoader::JsonLoader(){}
@@ -21,28 +23,47 @@ JsonLoader::~JsonLoader(){}
 // @param path JSON ファイルのパス
 nlohmann::json JsonLoader::Load(const std::filesystem::path& path)
 {
-	// ファイルを開く
-    std::ifstream file(path, std::ios::binary);
-    if (!file.is_open())
+    HANDLE hFile = CreateFileW(
+        path.wstring().c_str(),
+        GENERIC_READ,
+        FILE_SHARE_READ,
+        nullptr,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr
+    );
+
+    if (hFile == INVALID_HANDLE_VALUE)
     {
-		// ファイルが開けなかった場合のエラーハンドリング
-        std::cout << "JSON ファイルを開けません: " << path << std::endl;
-        return nlohmann::json(); // 空の JSON を返す
+        std::wcout << L"JSON ファイルを開けません: " << path.wstring() << std::endl;
+        return nlohmann::json();
     }
 
-	// JSON データをパース
-    nlohmann::json data;
+    DWORD size = GetFileSize(hFile, NULL);
+    if (size == INVALID_FILE_SIZE)
+    {
+        CloseHandle(hFile);
+        return nlohmann::json();
+    }
+
+    std::string buffer(size, '\0');
+    DWORD readBytes = 0;
+
+    if (!ReadFile(hFile, buffer.data(), size, &readBytes, NULL))
+    {
+        CloseHandle(hFile);
+        return nlohmann::json();
+    }
+
+    CloseHandle(hFile);
+
     try
     {
-        file >> data;
+        return nlohmann::json::parse(buffer);
     }
-	// JSON パースエラーのキャッチ
     catch (const std::exception& e)
     {
         std::cout << "JSON パースエラー: " << e.what() << std::endl;
-        return nlohmann::json(); // パース失敗時も空を返す
+        return nlohmann::json();
     }
-
-    return data;
 }
-

@@ -15,6 +15,7 @@ public:
     void DrawCombo();
     void DrawScore();
     void DrawSongInfo();
+    std::string Utf8ToSjis(const std::string& utf8);
 
 private:
     std::vector<Note> notes;

@@ -413,9 +413,22 @@ void GameScene::DrawScore()
 
 void GameScene::DrawSongInfo()
 {
-    DrawString(30, 60, songName.c_str(), GetColor(200, 200, 200));
+    std::string sjis = Utf8ToSjis(songName);
+    DrawString(30, 60, sjis.c_str(), GetColor(200, 200, 200));
 }
 
+std::string GameScene::Utf8ToSjis(const std::string& utf8)
+{
+    int wlen = MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, nullptr, 0);
+    std::wstring wstr(wlen, 0);
+    MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, &wstr[0], wlen);
+
+    int len = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
+    std::string sjis(len, 0);
+    WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, &sjis[0], len, nullptr, nullptr);
+
+    return sjis;
+}
 
 void GameScene::DrawQuad3D(
     const VECTOR& p1,

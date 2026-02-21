@@ -1,4 +1,5 @@
 #include "MusicSelectUI.h"
+#include "JsonCreator.h"
 #include <DxLib.h>
 #include <codecvt> 
 #include <locale>
@@ -28,6 +29,8 @@ void MusicSelectUI::LoadFont(const std::string& fontPath, int size)
 
 void MusicSelectUI::LoadMusicList()
 {
+    JsonCreator::CreateMusicJson(folderPath);
+
     auto json = JsonLoader::Load((folderPath / "musics.json"));
     if (json.empty() || !json.contains("musics"))
         return;
@@ -38,10 +41,10 @@ void MusicSelectUI::LoadMusicList()
         info.folder = item["folder"];
         info.file = item["file"];
 
-        fs::path easy = folderPath / info.folder / "Easy.json";
-        fs::path normal = folderPath / info.folder / "Normal.json";
-        fs::path hard = folderPath / info.folder / "Hard.json";
-        fs::path extra = folderPath / info.folder / "Extra.json";
+        fs::path easy = folderPath / fs::u8path(info.folder) / "Easy.json";
+        fs::path normal = folderPath / fs::u8path(info.folder) / "Normal.json";
+        fs::path hard = folderPath / fs::u8path(info.folder) / "Hard.json";
+        fs::path extra = folderPath / fs::u8path(info.folder) / "Extra.json";
 
         if (fs::exists(easy)) info.easyChart = "Easy.json";
         if (fs::exists(normal)) info.normalChart = "Normal.json";
@@ -65,7 +68,7 @@ void MusicSelectUI::LoadMusicList()
 
         for (auto& ext : exts)
         {
-            fs::path bannerPath = folderPath / info.folder / ("banner" + ext);
+            fs::path bannerPath = folderPath / fs::u8path(info.folder) / ("banner" + ext);
             if (fs::exists(bannerPath))
             {
                 info.banner = bannerPath.string();
@@ -374,11 +377,11 @@ void MusicSelectUI::Update()
 
             if (!chartFile.empty())
             {
-                fs::path chartPath = folderPath / info.folder / chartFile;
+                fs::path chartPath = folderPath / fs::u8path(info.folder) / chartFile;
                 NotesData data;
                 data.LoadFromJson(JsonLoader::Load(chartPath.string()));
-                data.musicPath = (folderPath / info.folder / info.file).string();
-                data.folderPath = (folderPath / info.folder).string();
+                data.musicPath = (folderPath / fs::u8path(info.folder) / info.file).string();
+                data.folderPath = (folderPath / fs::u8path(info.folder)).string();
 
                 createdScene = new GameScene(data);
             }

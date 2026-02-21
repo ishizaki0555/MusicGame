@@ -13,6 +13,10 @@
 #include <string>
 #include <fstream>
 #include <json.hpp>
+#include <windows.h>
+#include <io.h>
+#include <fcntl.h>
+
 
 // JsonLoader ƒNƒ‰ƒX
 class JsonLoader
