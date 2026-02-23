@@ -1,56 +1,72 @@
+// ========================================
+// 
+// MusicGame Project
+// 
+// ========================================
+// 
+// GameScene.cpp
+// ノーツの移動・判定処理、スコア計算、UI描画、レーン演出など
+// リズムゲームのメインロジックを実装したシーンです。
+// 
+//========================================
+
 #include "GameScene.h"
 
-// @brief　コンストラクタです
+// @brief  コンストラクタ
 // @param notesData ノーツデータ
-// @param banner バナー情報
+// @param banner    バナー画像ハンドル
 GameScene::GameScene(const NotesData& notesData, int banner)
     : LANE_TEX(LoadGraph("Texture/LaneTexture.png"))
     , LINE_TEX(LoadGraph("Texture/LineTexture.png"))
     , NOTE_TEX(LoadGraph("Texture/NoteTexture.png"))
     , LONG_NOTE_TEX(LoadGraph("Texture/LongNoteTexture.png"))
 {
-    notes = notesData.notes;
-    songName = notesData.title;
-    bannerHandle = banner;
+    notes = notesData.notes;                 // ノーツ一覧をコピー
+    songName = notesData.title;              // 曲名を保存
+    bannerHandle = banner;                   // バナーハンドルを保存
 
-    musicHandle = LoadSoundMem(notesData.musicPath.c_str());
+    musicHandle = LoadSoundMem(notesData.musicPath.c_str()); // 楽曲読み込み
 
-    // スコアの理論値を計算
+    // スコアの最大値をノーツ数から計算
     int noteNum = static_cast<int>(notes.size());
     maxScore = noteNum * 5;
 }
 
+// @brief 判定ロジック
+// @param diffMs 判定ラインとの差（ミリ秒）
+// @return 判定結果（0=PERFECT,1=GREAT,2=GOOD,3=MISS）
 int GameScene::JudgeNote(int diffMs)
 {
     diffMs = abs(diffMs);
 
-    if (diffMs <= PERFECT_RANGE) return 0;
-    if (diffMs <= GREAT_RANGE) return 1;
-    if (diffMs <= GOOD_RANGE) return 2;
-    return 3;
+    if (diffMs <= PERFECT_RANGE) return 0;   // PERFECT 判定
+    if (diffMs <= GREAT_RANGE)   return 1;   // GREAT 判定
+    if (diffMs <= GOOD_RANGE)    return 2;   // GOOD 判定
+    return 3;                                 // MISS 判定
 }
 
 /// <summary>
-/// 更新します
+/// 毎フレーム更新処理
 /// </summary>
 void GameScene::Update()
 {
     // ============================
-    // ★ カウントダウン処理
+    // ■ カウントダウン処理
     // ============================
-    if (!started)
+    if (!started)   // ゲーム開始前かどうか判定
     {
-        countDown--;
-        if (countDown <= 0)
+        countDown--;    // カウントダウンを進める
+
+        if (countDown <= 0)   // カウントが0になったら開始
         {
             started = true;
-            PlaySoundMem(musicHandle, DX_PLAYTYPE_BACK);
+            PlaySoundMem(musicHandle, DX_PLAYTYPE_BACK); // 楽曲再生
         }
-        return;
+        return; // 開始前はここで終了
     }
 
     // ============================
-    // ★ レーン光り処理（SDJK）
+    // ■ レーン入力処理（S D J K）
     // ============================
     int keys[4] = {
         KEY_INPUT_S,
@@ -59,66 +75,63 @@ void GameScene::Update()
         KEY_INPUT_K
     };
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++)   // 各レーンのキー入力を確認
     {
-        if (CheckHitKey(keys[i]))
-            laneFlash[i] = 10; // 光る時間
-        else if (laneFlash[i] > 0)
-            laneFlash[i]--;
+        if (CheckHitKey(keys[i]))     // キーが押されたら
+            laneFlash[i] = 10;        // レーン発光を開始
+        else if (laneFlash[i] > 0)    // 発光中なら
+            laneFlash[i]--;           // 徐々に減衰
     }
 
     // ============================
-    // レーン別判定（Z距離ベース）
+    // ■ ノーツ処理（Z方向移動）
     // ============================
     double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0;
 
-    for (int lane = 0; lane < 4; lane++)
+    for (int lane = 0; lane < 4; lane++)   // 各レーンのノーツを処理
     {
-        // そのレーンのノーツを全部チェック
+        // 次のノーツが同じレーンに来るまで進める
         while (nextNoteIndex[lane] < notes.size() &&
             notes[nextNoteIndex[lane]].lane != lane)
         {
-            nextNoteIndex[lane]++;
+            nextNoteIndex[lane]++;   // レーンが一致するノーツを探す
         }
 
-        if (nextNoteIndex[lane] >= notes.size()) continue;
+        if (nextNoteIndex[lane] >= notes.size()) continue; // ノーツが無ければスキップ
 
-        Note& n = notes[nextNoteIndex[lane]];
+        Note& n = notes[nextNoteIndex[lane]]; // 現在のノーツ参照
 
-        // Z 座標計算
+        // ノーツのZ位置を計算
         float dt = n.time - currentTime;
         float z = dt * scrollSpeed;
 
         // 判定ラインとの差
         float diffZ = z - JUDGE_LINE_Z;
 
-        // 判定ラインを GOOD より手前に通り過ぎたら MISS
+        // 判定ラインを大きく過ぎたら MISS
         if (diffZ < -GOOD_RANGE)
         {
             float dt = n.time - currentTime;
             float z = dt * scrollSpeed;
 
-            judgeLane = lane;
-            judgeZ = z;
-
-            lastJudge = 3;
-            judgeDisplayTimer = 30;
-            n.judged = true;
-            nextNoteIndex[lane]++;
+            judgeLane = lane;        // 判定レーン
+            judgeZ = z;              // 判定位置
+            lastJudge = 3;           // MISS
+            judgeDisplayTimer = 30;  // 表示時間
+            n.judged = true;         // 判定済み
+            nextNoteIndex[lane]++;   // 次のノーツへ
             continue;
         }
 
-        // キー押したら判定（判定ゾーン内のみ）
-        if (CheckHitKey(keys[lane]) == 1)
+        // キーが押された瞬間のみ判定
+        if (CheckHitKey(keys[lane]) == 1)   // キーが押された瞬間か判定
         {
-            float ad = fabs(diffZ);
+            float ad = fabs(diffZ);         // 判定ラインとの差
 
-            // 判定ゾーン外 → 何も起きない
-            if (ad > GOOD_RANGE)
+            if (ad > GOOD_RANGE)            // GOOD より外なら判定しない
                 continue;
 
-            // 判定ゾーン内 → 判定する
-            // PERFECT判定
+            // 判定処理
             if (ad <= PERFECT_RANGE)
             {
                 lastJudge = 0;
@@ -126,7 +139,6 @@ void GameScene::Update()
                 ratioScore += 5;
                 combo++;
             }
-            // GREAT判定
             else if (ad <= GREAT_RANGE)
             {
                 lastJudge = 1;
@@ -134,7 +146,6 @@ void GameScene::Update()
                 ratioScore += 3;
                 combo++;
             }
-            // GOOD判定
             else
             {
                 lastJudge = 2;
@@ -144,55 +155,60 @@ void GameScene::Update()
             }
 
             // 判定カウントを増加
-            switch (lastJudge)
+            switch (lastJudge)   // 判定種別に応じてカウント増加
             {
-                case 0: perfectCount++; break;
-                case 1: greatCount++; break;
-                case 2: goodCount++; break;
-                case 3: missCount++; break;
+            case 0: perfectCount++; break;
+            case 1: greatCount++;   break;
+            case 2: goodCount++;    break;
+            case 3: missCount++;    break;
             }
 
-            judgeLane = lane;
-            judgeZ = z;
+            judgeLane = lane;        // 判定レーン
+            judgeZ = z;              // 判定位置
 
-            judgeTextY = 0.0f;
-            judgeAlpha = 255;
-            judgeHoldTimer = 10;
+            judgeTextY = 0.0f;       // 判定文字のYオフセット初期化
+            judgeAlpha = 255;        // 透明度初期化
+            judgeHoldTimer = 10;     // 静止時間
 
-            judgeDisplayTimer = 30;
-            n.judged = true;
-            nextNoteIndex[lane]++;
+            judgeDisplayTimer = 30;  // 表示時間
+            n.judged = true;         // 判定済み
+            nextNoteIndex[lane]++;   // 次のノーツへ
         }
     }
 
-    // 最終的なスコアの計算
+    // ============================
+    // ■ スコア計算
+    // ============================
     score = (int)(1000000.0f * floor((ratioScore / maxScore) * 1000000.0f) / 1000000.0f);
 
-    // 曲の終了を検知
+    // ============================
+    // ■ 楽曲終了判定
+    // ============================
     if (GetSoundCurrentTime(musicHandle) >= GetSoundTotalTime(musicHandle))
     {
-        finished = true;
+        finished = true; // 楽曲終了
     }
 }
 
 void GameScene::DrawCountDown()
 {
-    if (started) return;
+    if (started) return;   // 開始後は表示しない
 
-    int sec = countDown / 60 + 1;
+    int sec = countDown / 60 + 1; // 残り秒数を計算
 
     char buf[32];
     sprintf_s(buf, "%d", sec);
 
-    DrawString(600, 300, buf, GetColor(255, 255, 255));
+    DrawString(600, 300, buf, GetColor(255, 255, 255)); // カウントダウン表示
 }
 
 void GameScene::DrawJudgeZone()
 {
-    // レーン全体の横幅
+    // レーン全体の幅
     float x1 = -200;
     float x2 = 200;
 
+    // 判定ゾーン描画ラムダ
     auto drawZone = [&](float z1, float z2, int r, int g, int b)
         {
             VERTEX3D v[6];
@@ -201,7 +217,7 @@ void GameScene::DrawJudgeZone()
                 {
                     v[idx].pos = VGet(x, y, z);
                     v[idx].norm = VGet(0, 1, 0);
-                    v[idx].dif = GetColorU8(r, g, b, 120); // 半透明
+                    v[idx].dif = GetColorU8(r, g, b, 120);
                     v[idx].spc = GetColorU8(0, 0, 0, 0);
                     v[idx].u = 0;
                     v[idx].v = 0;
@@ -218,12 +234,12 @@ void GameScene::DrawJudgeZone()
             DrawPolygon3D(v, 2, LANE_TEX, TRUE);
         };
 
-    // PERFECT（黄色）
+    // PERFECT
     drawZone(JUDGE_LINE_Z - PERFECT_RANGE,
         JUDGE_LINE_Z + PERFECT_RANGE,
         255, 255, 0);
 
-    // GREAT（赤）
+    // GREAT
     drawZone(JUDGE_LINE_Z - GREAT_RANGE,
         JUDGE_LINE_Z - PERFECT_RANGE,
         255, 80, 80);
@@ -231,7 +247,7 @@ void GameScene::DrawJudgeZone()
         JUDGE_LINE_Z + GREAT_RANGE,
         255, 80, 80);
 
-    // GOOD（緑）
+    // GOOD
     drawZone(JUDGE_LINE_Z - GOOD_RANGE,
         JUDGE_LINE_Z - GREAT_RANGE,
         80, 255, 120);
@@ -239,7 +255,7 @@ void GameScene::DrawJudgeZone()
         JUDGE_LINE_Z + GOOD_RANGE,
         80, 255, 120);
 
-    // MISS（灰色）※任意
+    // MISS
     drawZone(JUDGE_LINE_Z - GOOD_RANGE - 60,
         JUDGE_LINE_Z - GOOD_RANGE,
         120, 120, 120);
@@ -250,16 +266,15 @@ void GameScene::DrawJudgeZone()
 
 void GameScene::DrawLaneFlash3D()
 {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++)   // 各レーンの発光を描画
     {
-        if (laneFlash[i] <= 0) continue;
+        if (laneFlash[i] <= 0) continue; // 発光していないならスキップ
 
         float x1 = (i * laneWidth) - (laneWidth * 2);
         float x2 = x1 + laneWidth;
 
         int alpha = laneFlash[i] * 20; // フェードアウト
 
-        // 半透明白
         COLOR_U8 col = GetColorU8(255, 255, 255, alpha);
 
         VERTEX3D v[6];
@@ -274,8 +289,7 @@ void GameScene::DrawLaneFlash3D()
                 v[idx].v = 0;
             };
 
-        // 判定ライン付近に薄い板を置く
-        float z = JUDGE_LINE_Z + 5;
+        float z = JUDGE_LINE_Z + 5; // 判定ラインの少し奥
 
         setV(0, x1, 0, z);
         setV(1, x2, 0, z);
@@ -291,15 +305,15 @@ void GameScene::DrawLaneFlash3D()
 
 void GameScene::DrawJudgeText()
 {
-    if (judgeDisplayTimer <= 0) return;
-    if (judgeLane < 0) return;
+    if (judgeDisplayTimer <= 0) return; // 表示時間が終わっていたら描画しない
+    if (judgeLane < 0) return;          // 判定レーンが無ければ描画しない
 
     const char* text = "";
     int baseColor = GetColor(255, 255, 255);
 
-    switch (lastJudge)
+    switch (lastJudge)   // 判定種別に応じて文字と色を設定
     {
-    case 0: 
+    case 0:
         text = "PERFECT";
         baseColor = GetColor(255, 255, 0);
         break;
@@ -317,31 +331,27 @@ void GameScene::DrawJudgeText()
         break;
     }
 
-    // レーンのX座標
+    // レーンのX位置を計算
     float x1 = (judgeLane * laneWidth) - (laneWidth * 2) + 10;
     float x2 = x1 + laneWidth - 20;
     float centerX = (x1 + x2) / 2;
 
-    // 3D → 2D 変換
+    // 3D → 2D 座標変換
     VECTOR world = VGet(centerX, 30, judgeZ);
     VECTOR screen = ConvWorldPosToScreenPos(world);
 
-    // 停止時間が残っている間は動かさない
+    // 静止時間が残っている間は動かさない
     if (judgeHoldTimer > 0)
     {
         judgeHoldTimer--;
     }
     else
     {
-        // 停止後にスライド開始
-        judgeTextY -= 1.0f;
-
-        // フェードアウト開始
-        judgeAlpha -= 8;
+        judgeTextY -= 1.0f;   // 上方向へ移動
+        judgeAlpha -= 8;      // 徐々に透明に
         if (judgeAlpha < 0) judgeAlpha = 0;
     }
 
-    // 色にアルファを適用
     int r, g, b;
     GetColor2(baseColor, &r, &g, &b);
     int color = GetColor(r, g, b);
@@ -360,12 +370,12 @@ void GameScene::DrawJudgeText()
 
 void GameScene::Draw()
 {
-    DrawBox(0, 0, 1280, 720, GetColor(20, 20, 20), TRUE);
+    DrawBox(0, 0, 1280, 720, GetColor(20, 20, 20), TRUE); // 背景
 
     VECTOR eye = VGet(0.0f, 200.0f, -350.0f);
     VECTOR target = VGet(0.0f, 0.0f, 0.0f);
 
-    SetCameraPositionAndTarget_UpVecY(eye, target);
+    SetCameraPositionAndTarget_UpVecY(eye, target); // カメラ設定
 
     // レーン描画
     for (int i = 0; i < 4; i++)
@@ -390,25 +400,22 @@ void GameScene::Draw()
         LINE_TEX
     );
 
-    //DrawJudgeZone();
-
     // カウントダウン表示
     DrawCountDown();
 
-    // カウントダウン中はノーツを描画しない
-    if (!started) return;
+    if (!started) return; // 開始前はノーツを描画しない
 
     // ノーツ描画
     double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0;
 
     for (auto& n : notes)
     {
-        if (n.judged) continue;
+        if (n.judged) continue; // 判定済みは描画しない
 
         float dt = n.time - currentTime;
         float z = dt * scrollSpeed;
 
-        if (z < LANE_FRONT || z > LANE_DEPTH) continue;
+        if (z < LANE_FRONT || z > LANE_DEPTH) continue; // 範囲外は描画しない
 
         float x1 = (n.lane * laneWidth) - (laneWidth * 2) + 10;
         float x2 = x1 + laneWidth - 20;
@@ -422,12 +429,13 @@ void GameScene::Draw()
         );
     }
 
-    // レーン光り
+    // レーン発光
     DrawLaneFlash3D();
 
     // 判定文字
     DrawJudgeText();
 
+    // UI
     DrawScore();
     DrawCombo();
     DrawSongInfo();
@@ -435,34 +443,36 @@ void GameScene::Draw()
 
 void GameScene::DrawCombo()
 {
-    if (combo <= 0) return;
+    if (combo <= 0) return; // コンボが0なら表示しない
 
     char buf[32];
     sprintf_s(buf, "%d", combo);
 
-    // 右側に固定
-    DrawString(1100, 300, buf, GetColor(255, 255, 255));
+    DrawString(1100, 300, buf, GetColor(255, 255, 255)); // コンボ表示
 }
 
 void GameScene::DrawScore()
 {
     char buf[32];
-    sprintf_s(buf, "%07d", score);  // ゼロ埋め
-    DrawString(30, 20, buf, GetColor(255, 255, 255));
+    sprintf_s(buf, "%07d", score); // 7桁ゼロ埋め
+
+    DrawString(30, 20, buf, GetColor(255, 255, 255)); // スコア表示
 }
 
 void GameScene::DrawSongInfo()
 {
     std::string sjis = Utf8ToSjis(songName);
-    DrawString(30, 60, sjis.c_str(), GetColor(200, 200, 200));
+    DrawString(30, 60, sjis.c_str(), GetColor(200, 200, 200)); // 曲名表示
 }
 
 std::string GameScene::Utf8ToSjis(const std::string& utf8)
 {
+    // UTF-8 → UTF-16 変換
     int wlen = MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, nullptr, 0);
     std::wstring wstr(wlen, 0);
     MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, &wstr[0], wlen);
 
+    // UTF-16 → Shift-JIS 変換
     int len = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
     std::string sjis(len, 0);
     WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, &sjis[0], len, nullptr, nullptr);
@@ -480,18 +490,20 @@ void GameScene::DrawQuad3D(
 {
     VERTEX3D v[6];
 
+    // 四角形を三角形2枚に分割して設定
     v[0].pos = p1; v[1].pos = p2; v[2].pos = p3;
     v[3].pos = p1; v[4].pos = p3; v[5].pos = p4;
 
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; i++)   // 各頂点の属性を設定
     {
-        v[i].norm = VGet(0.0f, 1.0f, 0.0f);
-        v[i].dif = GetColorU8(255, 255, 255, 255);
-        v[i].spc = GetColorU8(0, 0, 0, 0);
+        v[i].norm = VGet(0.0f, 1.0f, 0.0f);          // 法線
+        v[i].dif = GetColorU8(255, 255, 255, 255);   // 色
+        v[i].spc = GetColorU8(0, 0, 0, 0);           // スペキュラ
 
+        // UV座標設定（テクスチャ貼り付け）
         v[i].u = (i == 1 || i == 2 || i == 4) ? 1.0f : 0.0f;
         v[i].v = (i == 2 || i == 3 || i == 4) ? 1.0f : 0.0f;
     }
 
-    DrawPolygon3D(v, 2, tex, TRUE);
+    DrawPolygon3D(v, 2, tex, TRUE); // 四角形描画
 }
