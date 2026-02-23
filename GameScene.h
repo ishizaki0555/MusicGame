@@ -7,7 +7,7 @@
 class GameScene
 {
 public:
-    GameScene(const NotesData& notes);
+    GameScene(const NotesData& notes, int banner);
 
     void Update();
     void Draw();
@@ -15,7 +15,20 @@ public:
     void DrawCombo();
     void DrawScore();
     void DrawSongInfo();
+
+    int GetScore() const { return score; }
+    int GetMaxCombo() const { return combo; }
+    int GetPerfect() const { return perfectCount; }
+    int GetGreat() const { return greatCount; }
+    int GetGood() const { return goodCount; }
+    int GetMiss() const { return missCount; }
+    int GetBannerHandle() const { return bannerHandle; }
+    std::string GetSongName() const { return songName; }
+
     std::string Utf8ToSjis(const std::string& utf8);
+
+    bool finished = false;
+    bool IsFinished() const { return finished; }
 
 private:
     std::vector<Note> notes;
@@ -48,16 +61,28 @@ private:
     int judgeDisplayTimer = 0;                      // 判定文字の表示時間
     int lastJudge = -1;                             // 最後の判定結果
 
+    int perfectCount = 0;                           // Perfect
+    int greatCount = 0;                             // Great
+    int goodCount = 0;                              // Good
+    int missCount = 0;                              // Miss
+
     int judgeLane = -1;                             // 判定が出たレーン
     float judgeZ = 0.0f;                            // 判定が出たノーツのZ位置
     float judgeTextY = 0.0f;
     int judgeAlpha = 255;
     int judgeHoldTimer = 500;
 
+    // スコア関連
+    float ratioScore = 0.0f;                        // 現在のスコア
+    float maxScore = 1000000.0f;              // 最大スコア
+
     // UI関連
     int score = 0;
     int combo = 0;
     std::string songName;
+
+
+    int bannerHandle = -1;
 
     // カウントダウン関連
     int countDown = 180;                            // ３秒(60FPS想定)

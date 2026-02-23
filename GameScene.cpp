@@ -1,6 +1,9 @@
 #include "GameScene.h"
 
-GameScene::GameScene(const NotesData& notesData)
+// @brief　コンストラクタです
+// @param notesData ノーツデータ
+// @param banner バナー情報
+GameScene::GameScene(const NotesData& notesData, int banner)
     : LANE_TEX(LoadGraph("Texture/LaneTexture.png"))
     , LINE_TEX(LoadGraph("Texture/LineTexture.png"))
     , NOTE_TEX(LoadGraph("Texture/NoteTexture.png"))
@@ -8,8 +11,13 @@ GameScene::GameScene(const NotesData& notesData)
 {
     notes = notesData.notes;
     songName = notesData.title;
+    bannerHandle = banner;
 
     musicHandle = LoadSoundMem(notesData.musicPath.c_str());
+
+    // スコアの理論値を計算
+    int noteNum = static_cast<int>(notes.size());
+    maxScore = noteNum * 5;
 }
 
 int GameScene::JudgeNote(int diffMs)
@@ -22,6 +30,9 @@ int GameScene::JudgeNote(int diffMs)
     return 3;
 }
 
+/// <summary>
+/// 更新します
+/// </summary>
 void GameScene::Update()
 {
     // ============================
@@ -107,12 +118,39 @@ void GameScene::Update()
                 continue;
 
             // 判定ゾーン内 → 判定する
+            // PERFECT判定
             if (ad <= PERFECT_RANGE)
-                lastJudge = 0; // PERFECT
+            {
+                lastJudge = 0;
+                perfectCount++;
+                ratioScore += 5;
+                combo++;
+            }
+            // GREAT判定
             else if (ad <= GREAT_RANGE)
-                lastJudge = 1; // GREAT
+            {
+                lastJudge = 1;
+                greatCount++;
+                ratioScore += 3;
+                combo++;
+            }
+            // GOOD判定
             else
-                lastJudge = 2; // GOOD
+            {
+                lastJudge = 2;
+                goodCount++;
+                ratioScore++;
+                combo = 0;
+            }
+
+            // 判定カウントを増加
+            switch (lastJudge)
+            {
+                case 0: perfectCount++; break;
+                case 1: greatCount++; break;
+                case 2: goodCount++; break;
+                case 3: missCount++; break;
+            }
 
             judgeLane = lane;
             judgeZ = z;
@@ -125,6 +163,15 @@ void GameScene::Update()
             n.judged = true;
             nextNoteIndex[lane]++;
         }
+    }
+
+    // 最終的なスコアの計算
+    score = (int)(1000000.0f * floor((ratioScore / maxScore) * 1000000.0f) / 1000000.0f);
+
+    // 曲の終了を検知
+    if (GetSoundCurrentTime(musicHandle) >= GetSoundTotalTime(musicHandle))
+    {
+        finished = true;
     }
 }
 
@@ -255,25 +302,18 @@ void GameScene::DrawJudgeText()
     case 0: 
         text = "PERFECT";
         baseColor = GetColor(255, 255, 0);
-        score += 5;
-        combo++;
         break;
     case 1:
         text = "GREAT";
         baseColor = GetColor(255, 80, 80);
-        score += 3;
-        combo++;
         break;
     case 2:
         text = "GOOD";
         baseColor = GetColor(80, 255, 120);
-        score++;
-        combo = 0;
         break;
     case 3:
         text = "MISS";
         baseColor = GetColor(120, 120, 120);
-        combo = 0;
         break;
     }
 

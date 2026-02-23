@@ -383,7 +383,7 @@ void MusicSelectUI::Update()
                 data.musicPath = (folderPath / fs::u8path(info.folder) / info.file).string();
                 data.folderPath = (folderPath / fs::u8path(info.folder)).string();
 
-                createdScene = new GameScene(data);
+                createdScene = new GameScene(data, info.bannerHandle);
             }
         }
     }
