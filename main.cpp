@@ -1,3 +1,15 @@
+// ========================================
+// 
+// MusicGame Project
+// 
+// ========================================
+// 
+// main.cpp
+// タイトル → 選曲 → ゲーム → リザルト の各シーンを管理し、
+// アプリケーション全体のループとシーン遷移を制御します。
+// 
+//========================================
+
 #include <DxLib.h>
 #include "MusicSelectUI.h"
 #include "TitleScene.h"
@@ -6,108 +18,132 @@
 
 enum class SceneType
 {
-    TITLE_SCENE,
-    SELECT_SCENE,
-    GAME_SCENE,
-    RESULT_SCENE
+    TITLE_SCENE,     // タイトル画面
+    SELECT_SCENE,    // 選曲画面
+    GAME_SCENE,      // ゲームプレイ
+    RESULT_SCENE     // リザルト画面
 };
 
-SceneType currentScene = SceneType::TITLE_SCENE;
+SceneType currentScene = SceneType::TITLE_SCENE;   // 現在のシーン
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-    // DXLib 初期化
-    SetGraphMode(1280, 720, 32, 30);
-    ChangeWindowMode(TRUE); // ウィンドウモード
+    // DXLib 初期設定
+    SetGraphMode(1280, 720, 32, 30);     // 画面サイズ設定
+    ChangeWindowMode(TRUE);              // ウィンドウモード
 
-    SetUseZBuffer3D(TRUE);     // 3D描画を有効化
-    SetWriteZBuffer3D(TRUE);   // Zバッファ書き込みを有効化
+    SetUseZBuffer3D(TRUE);               // Zバッファ使用
+    SetWriteZBuffer3D(TRUE);             // Zバッファ書き込み
 
-    if (DxLib_Init() == -1) return -1;
+    if (DxLib_Init() == -1) return -1;   // DXLib 初期化
+    SetDrawScreen(DX_SCREEN_BACK);       // 裏画面に描画
 
-    SetDrawScreen(DX_SCREEN_BACK);
-
+    // タイトルシーン生成
     TitleScene* title = new TitleScene();
+    // 選曲UI生成
     MusicSelectUI selectUI("Musics");
+    // フォント読み込み
     selectUI.LoadFont("Fonts/BIZ-UDMinchoM.ttc", 32);
+    // 楽曲リスト読み込み
     selectUI.LoadMusicList();
 
+    // ゲームシーン
     GameScene* game = nullptr;
+    // リザルトシーン
     ResultScene* result = nullptr;
 
+    // メインループ
     while (ProcessMessage() == 0)
     {
+        // 画面クリア
         ClearDrawScreen();
 
+        // 現在のシーンに応じて処理
         switch (currentScene)
         {
-        case SceneType::TITLE_SCENE:
-            title->Update();
-            title->Draw();
+            // タイトルシーン処理
+            case SceneType::TITLE_SCENE:            
+                title->Update();
+                title->Draw();
 
-            if (title->goNext)
-            {
-                StopSoundMem(title->bgm);
+                // タイトルから進むか判定
+                if (title->goNext)
+                {
+                    // タイトルBGM停止
+                    StopSoundMem(title->bgm);
 
-                selectUI.LoadFont("Fonts/BIZ-UDMinchoM.ttc", 32);
-                selectUI.LoadMusicList();
-                currentScene = SceneType::SELECT_SCENE;
-            }
-            break;
+                    selectUI.LoadFont("Fonts/BIZ-UDMinchoM.ttc", 32);
+                    selectUI.LoadMusicList();
+                    // 選曲へ遷移
+                    currentScene = SceneType::SELECT_SCENE;
+                }
+                break;
 
-        case SceneType::SELECT_SCENE:
-            selectUI.Update();
-            selectUI.Draw();
+            // 選曲シーン処理
+            case SceneType::SELECT_SCENE:
+                selectUI.Update();
+                selectUI.Draw();
 
-            if (selectUI.createdScene != nullptr)
-            {
-                game = selectUI.createdScene;
-                selectUI.createdScene = nullptr;
-                currentScene = SceneType::GAME_SCENE;
-            }
-            break;
+                // ゲームシーンが生成されたか判定
+                if (selectUI.createdScene != nullptr)
+                {
+                    // 生成されたゲームシーンを受け取る
+                    game = selectUI.createdScene;
+                    selectUI.createdScene = nullptr;
+                    // ゲームへ遷移
+                    currentScene = SceneType::GAME_SCENE;
+                }
+                break;
 
-        case SceneType::GAME_SCENE:
-            game->Update();
-            game->Draw();
+            // ゲームシーン処理
+            case SceneType::GAME_SCENE:
+                game->Update();
+                game->Draw();
 
-            if (game->IsFinished())
-            {
-                result = new ResultScene(
-                    game->GetScore(),
-                    game->GetMaxCombo(),
-                    game->GetPerfect(),
-                    game->GetGreat(),
-                    game->GetGood(),
-                    game->GetMiss(),
-                    game->GetSongName(),
-                    game->GetBannerHandle()
-                );
+                // ゲーム終了判定
+                if (game->IsFinished())
+                {
+                    result = new ResultScene(
+                        game->GetScore(),
+                        game->GetMaxCombo(),
+                        game->GetPerfect(),
+                        game->GetGreat(),
+                        game->GetGood(),
+                        game->GetMiss(),
+                        game->GetSongName(),
+                        game->GetBannerHandle()
+                    );
 
-                delete game;
-                game = nullptr;
+                    // ゲームシーン破棄
+                    delete game;
+                    game = nullptr;
+                        
+                    // リザルトへ遷移
+                    currentScene = SceneType::RESULT_SCENE;
+                }
+                break;
 
-                currentScene = SceneType::RESULT_SCENE;
-            }
-            break;
-
-        case SceneType::RESULT_SCENE:
-            result->Update();
-            result->Draw();
-
-            if (result->goNext)
-            {
-                delete result;
-                result = nullptr;
-                currentScene = SceneType::SELECT_SCENE;
-            }
-            break;
+            // リザルトシーン処理
+            case SceneType::RESULT_SCENE:
+                result->Update();
+                result->Draw();
+    
+                // リザルトから戻るか判定
+                if (result->goNext)
+                {
+                    // リザルト破棄
+                    delete result;
+                    result = nullptr;
+                    currentScene = SceneType::SELECT_SCENE; // 選曲へ戻る
+                }
+                break;
         }
 
+        // 画面反映
         ScreenFlip();
     }
 
-
+    // DXLib終了処理
     DxLib_End();
     return 0;
 }
