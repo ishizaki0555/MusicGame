@@ -10,6 +10,7 @@
 // 
 //========================================
 
+#include <iostream>
 #include "GameScene.h"
 
 // @brief  コンストラクタ
@@ -17,6 +18,7 @@
 // @param banner    バナー画像ハンドル
 GameScene::GameScene(const NotesData& notesData, int banner)
     : LANE_TEX(LoadGraph("Texture/LaneTexture.png"))
+    , LIGHT_TEX(LoadGraph("Texture/LightTexture.png"))
     , LINE_TEX(LoadGraph("Texture/LineTexture.png"))
     , NOTE_TEX(LoadGraph("Texture/NoteTexture.png"))
     , LONG_NOTE_TEX(LoadGraph("Texture/LongNoteTexture.png"))
@@ -91,15 +93,17 @@ void GameScene::Update()
     // ============================
     // ノーツ処理（Z方向移動）
     // ============================
-    double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0;
+    double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0f;
 
     // 各レーンのノーツを処理
     for (int lane = 0; lane < 4; lane++)
     {
         // 次のノーツが同じレーンに来るまで進める
         while (nextNoteIndex[lane] < notes.size() &&
-            notes[nextNoteIndex[lane]].lane != lane)
+            notes[nextNoteIndex[lane]].lane != lane && 
+            notes[nextNoteIndex[lane]].endLane != lane)
         {
+            std::cout << "Skipping ntoe" << std::endl;
             nextNoteIndex[lane]++;   // レーンが一致するノーツを探す
         }
 
@@ -108,6 +112,7 @@ void GameScene::Update()
 
         Note& n = notes[nextNoteIndex[lane]]; // 現在のノーツ参照
 
+        /*
         // ノーツのZ位置を計算
         float dt = n.time - currentTime;
         float z = dt * scrollSpeed;
@@ -136,27 +141,28 @@ void GameScene::Update()
             float ad = fabs(diffZ);         // 判定ラインとの差
 
             if (ad > GOOD_RANGE)            // GOOD より外なら判定しない
+            {
+                lastJudge = 3;
+                combo = 0;
                 continue;
+            }   
 
             // 判定処理
             if (ad <= PERFECT_RANGE)
             {
                 lastJudge = 0;
-                perfectCount++;
                 ratioScore += 5;
                 combo++;
             }
             else if (ad <= GREAT_RANGE)
             {
                 lastJudge = 1;
-                greatCount++;
                 ratioScore += 3;
                 combo++;
             }
             else
             {
                 lastJudge = 2;
-                goodCount++;
                 ratioScore++;
                 combo = 0;
             }
@@ -180,6 +186,49 @@ void GameScene::Update()
             judgeDisplayTimer = 30;  // 表示時間
             n.judged = true;         // 判定済み
             nextNoteIndex[lane]++;   // 次のノーツへ
+        }*/
+
+        // ノーツと予定時間との差を計算
+        double diffSec = currentTime - n.time;
+        int diffMs = (int)(diffSec * 1000.0);
+
+        // 押さなかった場合のMISS
+        if (diffMs > GOOD_RANGE)
+        {
+            lastJudge = 3;
+            combo = 0;
+
+            judgeLane = lane;
+            judgeZ = (float)((n.time - currentTime) * scrollSpeed);
+            judgeDisplayTimer = 30;
+
+            //n.judged = true;
+            //nextNoteIndex[lane]++;
+            continue;
+        }
+
+        // キーが押された時の判定
+        if (CheckHitKey(keys[lane]) == 1)
+        {
+            int result = JudgeNote(diffMs);;
+            lastJudge = result;
+
+            switch (result)
+            {
+            case 0: perfectCount++; ratioScore += 5; combo++; break;
+            case 1: greatCount++; ratioScore += 3; combo++; break;
+            case 2: goodCount++; ratioScore += 1; combo = 0; break;
+            case 3: missCount++; combo = 0; break;
+            }
+
+            judgeLane = lane;
+            judgeZ = (float)((n.time - currentTime) * scrollSpeed);
+			judgeTextY = 0.0f;
+			judgeAlpha = 255;
+			judgeHoldTimer = 10;
+			judgeDisplayTimer = 30;
+			n.judged = true;
+			nextNoteIndex[lane]++;
         }
     }
 
@@ -306,7 +355,7 @@ void GameScene::DrawLaneFlash3D()
         setV(4, x2, 0, z + FLASH_LINE_Z);
         setV(5, x1, 0, z + FLASH_LINE_Z);
 
-        DrawPolygon3D(v, 2, NOTE_TEX, TRUE);
+        DrawPolygon3D(v, 2, LIGHT_TEX, TRUE);
     }
 }
 
@@ -379,8 +428,8 @@ void GameScene::Draw()
 {
     DrawBox(0, 0, 1280, 720, GetColor(20, 20, 20), TRUE); // 背景
 
-    VECTOR eye = VGet(0.0f, 200.0f, -350.0f);
-    VECTOR target = VGet(0.0f, 0.0f, 0.0f);
+    VECTOR eye = VGet(0.0f, 200.0f, -300.0f);
+    VECTOR target = VGet(0.0f, 50.0f, -100.0f);
 
     SetCameraPositionAndTarget_UpVecY(eye, target); // カメラ設定
 
@@ -417,25 +466,56 @@ void GameScene::Draw()
 
     for (auto& n : notes)
     {
-        if (n.judged) continue; // 判定済みは描画しない
+        // ===== 通常ノーツ & ロングノーツ始点 =====
+        if (n.type == 1 || (n.type == 2 && n.time == n.endTime))
+        {
+            float dt = n.time - currentTime;
+            float z = dt * scrollSpeed + NOTE_OFFSET_Z;
 
-        float dt = n.time - currentTime;
-        float z = dt * scrollSpeed;
-        float visualZ = z + NOTE_OFFSET_Z;
+            if (z < LANE_FRONT || z > LANE_DEPTH) continue;
 
-        if (z < LANE_FRONT || z > LANE_DEPTH) continue; // 範囲外は描画しない
+            float xCenter = -2 * laneWidth + laneWidth * n.lane + laneWidth / 2;
+            float halfWidth = laneWidth / 3;
+            float x1 = xCenter - halfWidth;
+            float x2 = xCenter + halfWidth;
 
-        float x1 = (n.lane * laneWidth) - (laneWidth * 2) + 10;
-        float x2 = x1 + laneWidth - 20;
+            DrawQuad3D(
+                VGet(x1, 0.1f, z),
+                VGet(x2, 0.1f, z),
+                VGet(x2, 0.1f, z + noteHeight),
+                VGet(x1, 0.1f, z + noteHeight),
+                NOTE_TEX
+            );
+            continue;
+        }
+        // ===== ロングノーツ帯 =====
+        if (n.type == 2 && n.endTime > n.time)
+        {
+            float dtStart = n.time - currentTime;
+            float dtEnd = n.endTime - currentTime;
 
-        DrawQuad3D(
-            VGet(x1, 0, visualZ),
-            VGet(x2, 0, visualZ),
-            VGet(x2, 0, visualZ + noteHeight),
-            VGet(x1, 0, visualZ + noteHeight),
-            NOTE_TEX
-        );
+            float zStart = dtStart * scrollSpeed + NOTE_OFFSET_Z;
+            float zEnd = dtEnd * scrollSpeed + NOTE_OFFSET_Z;
+
+            if ((zStart < LANE_FRONT && zEnd < LANE_FRONT) ||
+                (zStart > LANE_DEPTH && zEnd > LANE_DEPTH))
+                continue;
+
+            float xCenter = -2 * laneWidth + laneWidth * n.lane + laneWidth / 2;
+            float halfWidth = laneWidth / 3;
+            float x1 = xCenter - halfWidth;
+            float x2 = xCenter + halfWidth;
+
+            DrawQuad3D(
+                VGet(x1, 0.1f, zStart),
+                VGet(x2, 0.1f, zStart),
+                VGet(x2, 0.1f, zEnd),
+                VGet(x1, 0.1f, zEnd),
+                LONG_NOTE_TEX
+            );
+        }
     }
+
 
     // レーン発光
     DrawLaneFlash3D();

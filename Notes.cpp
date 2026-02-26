@@ -21,23 +21,27 @@ void NotesData::LoadFromJson(const nlohmann::json& json)
             int block = n.value("block", 0);
             int type = n.value("type", 1);
 
-            // 時間計算
             float beat = (float)num / LPB;
             float time = beat * secPerBeat + (offset * 0.01f);
 
             Note note;
             note.lane = block;
+            note.endLane = block;   // デフォルトは同じレーン
             note.time = time;
+            note.endTime = time;
             note.type = type;
-            note.endTime = 0;
 
             // ロングノーツ
             if (n.contains("notes") && !n["notes"].empty())
             {
                 auto& child = n["notes"][0];
+
                 int endNum = child.value("num", num);
+                int endBlock = child.value("block", block);
+
                 float endBeat = (float)endNum / LPB;
                 note.endTime = endBeat * secPerBeat + (offset * 0.01f);
+                note.endLane = endBlock;
             }
 
             notes.push_back(note);

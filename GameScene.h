@@ -37,6 +37,13 @@ public:
     int GetBannerHandle() const { return bannerHandle; } // バナーハンドル取得
     std::string GetSongName() const { return songName; } // 曲名取得
 
+    // ノーツの種類
+    struct NoteType
+    {
+        int const NORMAL_NOTE = 1;       // 通常ノーツ
+        int const LONG_NOTE = 2;          // ロングノーツ
+    };
+
     std::string Utf8ToSjis(const std::string& utf8); // UTF-8 → Shift-JIS 変換
 
     bool finished = false;                           // 楽曲終了フラグ
@@ -61,13 +68,14 @@ private:
     int musicHandle = -1;                            // 楽曲ハンドル
 
     const int LANE_TEX;                              // レーンテクスチャ
+    const int LIGHT_TEX;                             // ライとテクスチャ
     const int LINE_TEX;                              // 判定ラインテクスチャ
     const int NOTE_TEX;                              // ノーツテクスチャ
     const int LONG_NOTE_TEX;                         // ロングノーツテクスチャ
 
-    const float PERFECT_RANGE = 30.0f;               // PERFECT 判定範囲
-    const float GREAT_RANGE = 60.0f;                 // GREAT 判定範囲
-    const float GOOD_RANGE = 100.0f;                 // GOOD 判定範囲
+    const float PERFECT_RANGE = 40.0f;               // PERFECT 判定範囲
+    const float GREAT_RANGE = 80.0f;                 // GREAT 判定範囲
+    const float GOOD_RANGE = 120.0f;                 // GOOD 判定範囲
 
     // 判定関連
     int nextNoteIndex[4] = { 0, 0, 0, 0 };           // 各レーンの次に判定するノーツ
