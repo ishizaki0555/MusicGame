@@ -26,7 +26,7 @@ TitleScene::~TitleScene()
 void TitleScene::Update()
 {
     // ENTER ‚ÅŽŸ‚Ö
-    if (CheckHitKey(KEY_INPUT_RETURN))
+    if (CheckHitKey(KEY_INPUT_RETURN) || CheckHitKey(KEY_INPUT_SPACE))
     {
         goNext = true;
     }
@@ -74,7 +74,7 @@ void TitleScene::Draw()
     // ============================
     float scale = 1.0f + 0.05f * sinf(GetNowCount() * 0.005f);
 
-    const char* title = "MY RHYTHM GAME";
+    const char* title = "MUSIC GAME!!";
     int w = GetDrawStringWidth(title, strlen(title));
     int x = 640 - (int)(w * scale / 2);
 
@@ -88,6 +88,6 @@ void TitleScene::Draw()
     int alpha = 128 + 127 * sinf(GetNowCount() * 0.01f);
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-    DrawString(500, 600, "PRESS ENTER", GetColor(255, 255, 255));
+    DrawString(500, 600, "PRESS ENTER OR SPACE", GetColor(255, 255, 255));
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }

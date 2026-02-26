@@ -55,6 +55,7 @@ private:
     const float NOTE_THICKNESS = 5.0f;               // ノーツの厚み
     const float LANE_BASE_Y = 0;                     // レーンのY座標
     const float JUDGE_LINE_Z = -210.0f;              // 判定ラインのZ座標
+    const float NOTE_OFFSET_Z = -700.0f;             // ノーツ描画用のオフセット
     const float FLASH_LINE_Z = 2700.0f;              // レーン発光の奥行き
 
     int musicHandle = -1;                            // 楽曲ハンドル

@@ -42,7 +42,7 @@ int GameScene::JudgeNote(int diffMs)
     if (diffMs <= PERFECT_RANGE) return 0;   // PERFECT 判定
     if (diffMs <= GREAT_RANGE)   return 1;   // GREAT 判定
     if (diffMs <= GOOD_RANGE)    return 2;   // GOOD 判定
-    return 3;                                 // MISS 判定
+    return 3;                                // MISS 判定
 }
 
 /// <summary>
@@ -51,13 +51,15 @@ int GameScene::JudgeNote(int diffMs)
 void GameScene::Update()
 {
     // ============================
-    // ■ カウントダウン処理
+    // カウントダウン処理
     // ============================
-    if (!started)   // ゲーム開始前かどうか判定
+    // ゲーム開始前かどうか判定
+    if (!started)
     {
         countDown--;    // カウントダウンを進める
 
-        if (countDown <= 0)   // カウントが0になったら開始
+        // カウントが0になったら開始
+        if (countDown <= 0)
         {
             started = true;
             PlaySoundMem(musicHandle, DX_PLAYTYPE_BACK); // 楽曲再生
@@ -66,7 +68,7 @@ void GameScene::Update()
     }
 
     // ============================
-    // ■ レーン入力処理（S D J K）
+    // レーン入力処理（S D J K）
     // ============================
     int keys[4] = {
         KEY_INPUT_S,
@@ -75,20 +77,24 @@ void GameScene::Update()
         KEY_INPUT_K
     };
 
-    for (int i = 0; i < 4; i++)   // 各レーンのキー入力を確認
+    // 各レーンのキー入力を確認
+    for (int i = 0; i < 4; i++)
     {
-        if (CheckHitKey(keys[i]))     // キーが押されたら
+        // キーが押されたら
+        if (CheckHitKey(keys[i]))
             laneFlash[i] = 10;        // レーン発光を開始
-        else if (laneFlash[i] > 0)    // 発光中なら
+        // 発光中なら
+        else if (laneFlash[i] > 0)
             laneFlash[i]--;           // 徐々に減衰
     }
 
     // ============================
-    // ■ ノーツ処理（Z方向移動）
+    // ノーツ処理（Z方向移動）
     // ============================
     double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0;
 
-    for (int lane = 0; lane < 4; lane++)   // 各レーンのノーツを処理
+    // 各レーンのノーツを処理
+    for (int lane = 0; lane < 4; lane++)
     {
         // 次のノーツが同じレーンに来るまで進める
         while (nextNoteIndex[lane] < notes.size() &&
@@ -97,7 +103,8 @@ void GameScene::Update()
             nextNoteIndex[lane]++;   // レーンが一致するノーツを探す
         }
 
-        if (nextNoteIndex[lane] >= notes.size()) continue; // ノーツが無ければスキップ
+        // ノーツが無ければスキップ
+        if (nextNoteIndex[lane] >= notes.size()) continue;
 
         Note& n = notes[nextNoteIndex[lane]]; // 現在のノーツ参照
 
@@ -177,12 +184,12 @@ void GameScene::Update()
     }
 
     // ============================
-    // ■ スコア計算
+    // スコア計算
     // ============================
     score = (int)(1000000.0f * floor((ratioScore / maxScore) * 1000000.0f) / 1000000.0f);
 
     // ============================
-    // ■ 楽曲終了判定
+    // 楽曲終了判定
     // ============================
     if (GetSoundCurrentTime(musicHandle) >= GetSoundTotalTime(musicHandle))
     {
@@ -414,6 +421,7 @@ void GameScene::Draw()
 
         float dt = n.time - currentTime;
         float z = dt * scrollSpeed;
+        float visualZ = z + NOTE_OFFSET_Z;
 
         if (z < LANE_FRONT || z > LANE_DEPTH) continue; // 範囲外は描画しない
 
@@ -421,16 +429,18 @@ void GameScene::Draw()
         float x2 = x1 + laneWidth - 20;
 
         DrawQuad3D(
-            VGet(x1, 0, z),
-            VGet(x2, 0, z),
-            VGet(x2, 0, z + noteHeight),
-            VGet(x1, 0, z + noteHeight),
+            VGet(x1, 0, visualZ),
+            VGet(x2, 0, visualZ),
+            VGet(x2, 0, visualZ + noteHeight),
+            VGet(x1, 0, visualZ + noteHeight),
             NOTE_TEX
         );
     }
 
     // レーン発光
     DrawLaneFlash3D();
+
+    DrawJudgeZone();
 
     // 判定文字
     DrawJudgeText();

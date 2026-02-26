@@ -27,6 +27,8 @@ public:
 	// @param songName 曲名
 	// @param banner バナー情報
 	ResultScene(int score, int combo, int perfect, int great, int good, int miss, const std::string& songName, int banner);
+	
+	// @brief デストラクタです
 	~ResultScene();
 
 	// @brief 更新します
