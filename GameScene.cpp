@@ -79,9 +79,16 @@ void GameScene::Update()
         KEY_INPUT_K
     };
 
+    
+
     // 各レーンのキー入力を確認
     for (int i = 0; i < 4; i++)
     {
+        nowKey[i] = (CheckHitKey(keys[i]) != 0);    // 現在のキーを記録
+        keyDown[i] = (nowKey[i] && !prevKey[i]);    // キーを押した瞬間
+        keyUp[i] = (!nowKey[i] && prevKey[i]);      // キーを離した瞬間
+        prevKey[i] = nowKey[i];                     // 前のキーを更新
+
         // キーが押されたら
         if (CheckHitKey(keys[i]))
             laneFlash[i] = 10;        // レーン発光を開始
@@ -91,144 +98,131 @@ void GameScene::Update()
     }
 
     // ============================
-    // ノーツ処理（Z方向移動）
+    // ノーツ処理（時間ベースの新判定）
     // ============================
-    double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0f;
+    double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0;
 
-    // 各レーンのノーツを処理
+    // レーンごとに処理
     for (int lane = 0; lane < 4; lane++)
     {
-        // 次のノーツが同じレーンに来るまで進める
-        while (nextNoteIndex[lane] < notes.size() &&
-            notes[nextNoteIndex[lane]].lane != lane && 
-            notes[nextNoteIndex[lane]].endLane != lane)
+        // ロングノーツのホールド判定
+        if (holding[lane])
         {
-            std::cout << "Skipping ntoe" << std::endl;
-            nextNoteIndex[lane]++;   // レーンが一致するノーツを探す
-        }
-
-        // ノーツが無ければスキップ
-        if (nextNoteIndex[lane] >= notes.size()) continue;
-
-        Note& n = notes[nextNoteIndex[lane]]; // 現在のノーツ参照
-
-        /*
-        // ノーツのZ位置を計算
-        float dt = n.time - currentTime;
-        float z = dt * scrollSpeed;
-
-        // 判定ラインとの差
-        float diffZ = z - JUDGE_LINE_Z;
-
-        // 判定ラインを大きく過ぎたら MISS
-        if (diffZ < -GOOD_RANGE)
-        {
-            float dt = n.time - currentTime;
-            float z = dt * scrollSpeed;
-
-            judgeLane = lane;        // 判定レーン
-            judgeZ = z;              // 判定位置
-            lastJudge = 3;           // MISS
-            judgeDisplayTimer = 30;  // 表示時間
-            n.judged = true;         // 判定済み
-            nextNoteIndex[lane]++;   // 次のノーツへ
-            continue;
-        }
-
-        // キーが押された瞬間のみ判定
-        if (CheckHitKey(keys[lane]) == 1)   // キーが押された瞬間か判定
-        {
-            float ad = fabs(diffZ);         // 判定ラインとの差
-
-            if (ad > GOOD_RANGE)            // GOOD より外なら判定しない
+            int holdIndex = holdingNoteIndex[lane];
+            if (holdIndex < 0 || holdIndex >= (int)notes.size())
             {
-                lastJudge = 3;
-                combo = 0;
+                holding[lane] = false;
+                holdingNoteIndex[lane] = -1;
                 continue;
-            }   
-
-            // 判定処理
-            if (ad <= PERFECT_RANGE)
-            {
-                lastJudge = 0;
-                ratioScore += 5;
-                combo++;
             }
-            else if (ad <= GREAT_RANGE)
+
+            Note& n = notes[holdIndex];
+
+            // 終点時間を過ぎたらKeyUp判定へ移行
+            double diffEndSec = currentTime - n.endTime;
+            int diffEndMs = (int)(fabs(diffEndSec) * 1000.0);
+
+            // KeyUp判定
+            if (keyUp[lane])
             {
-                lastJudge = 1;
-                ratioScore += 3;
-                combo++;
+                int result = JudgeNote(diffEndMs);
+                lastJudge = result;
+
+                switch (result)
+                {
+                case 0: perfectCount++; ratioScore += 5; combo++; break;
+                case 1: greatCount++; ratioScore += 3; combo++; break;
+                case 2: goodCount++; ratioScore ++; combo = 0; break;
+                case 3: missCount++; ; combo = 0; break;
+                }
+
+				SetJudgeDate(lane, n);
+
+                n.judged = true;
+                holding[lane] = false;
+                holdingNoteIndex[lane] = -1;
             }
             else
             {
-                lastJudge = 2;
-                ratioScore++;
-                combo = 0;
+                // ホールド中に終点範囲を超えたらMISS
+                if (diffEndMs > GOOD_RANGE)
+                {
+                    lastJudge = 3;
+                    missCount++;
+                    combo = 0;
+
+					SetJudgeDate(lane, n);
+
+                    n.judged = true;
+                    holding[lane] = false;
+                    holdingNoteIndex[lane] = -1;
+                }
             }
-
-            // 判定カウントを増加
-            switch (lastJudge)   // 判定種別に応じてカウント増加
-            {
-            case 0: perfectCount++; break;
-            case 1: greatCount++;   break;
-            case 2: goodCount++;    break;
-            case 3: missCount++;    break;
-            }
-
-            judgeLane = lane;        // 判定レーン
-            judgeZ = z;              // 判定位置
-
-            judgeTextY = 0.0f;       // 判定文字のYオフセット初期化
-            judgeAlpha = 255;        // 透明度初期化
-            judgeHoldTimer = 10;     // 静止時間
-
-            judgeDisplayTimer = 30;  // 表示時間
-            n.judged = true;         // 判定済み
-            nextNoteIndex[lane]++;   // 次のノーツへ
-        }*/
-
-        // ノーツと予定時間との差を計算
-        double diffSec = currentTime - n.time;
-        int diffMs = (int)(diffSec * 1000.0);
-
-        // 押さなかった場合のMISS
-        if (diffMs > GOOD_RANGE)
-        {
-            lastJudge = 3;
-            combo = 0;
-
-            judgeLane = lane;
-            judgeZ = (float)((n.time - currentTime) * scrollSpeed);
-            judgeDisplayTimer = 30;
-
-            //n.judged = true;
-            //nextNoteIndex[lane]++;
+            // 判定が終わったら次のノーツへ
             continue;
         }
 
-        // キーが押された時の判定
-        if (CheckHitKey(keys[lane]) == 1)
+        // このレーンの一番手前の未判定ノーツを探す
+        int targetIndex = -1;
+        for (int i = 0; i < (int)notes.size(); i++)
         {
-            int result = JudgeNote(diffMs);;
+            if (notes[i].judged) continue;
+            if (notes[i].lane != lane) continue;
+
+            targetIndex = i;
+            break;
+        }
+
+        if (targetIndex == -1) continue; // このレーンに未判定ノーツが無い
+
+        Note& n = notes[targetIndex];
+
+        // ノーツ予定時刻との差（ms）
+        double diffSec = currentTime - n.time;
+        int diffMs = (int)(diffSec * 1000.0);
+
+        // まだかなり早いなら何もしない（早押しは無視）
+        if (diffMs < -GOOD_RANGE) continue;
+
+        // 押さないまま GOOD 範囲を過ぎたら MISS
+        if (diffMs > GOOD_RANGE)
+        {
+            lastJudge = 3;          // MISS
+            missCount++;
+            combo = 0;
+
+            SetJudgeDate(lane, n);
+
+            n.judged = true;
+            continue;
+        }
+
+        // このフレームでキーが押された瞬間だけ判定
+        if (keyDown[lane])
+        {
+            int result = JudgeNote(diffMs);
             lastJudge = result;
 
             switch (result)
             {
             case 0: perfectCount++; ratioScore += 5; combo++; break;
-            case 1: greatCount++; ratioScore += 3; combo++; break;
-            case 2: goodCount++; ratioScore += 1; combo = 0; break;
-            case 3: missCount++; combo = 0; break;
+            case 1: greatCount++;   ratioScore += 3; combo++; break;
+            case 2: goodCount++;    ratioScore += 1; combo = 0; break;
+            case 3: missCount++;    combo = 0;       break;
             }
 
-            judgeLane = lane;
-            judgeZ = (float)((n.time - currentTime) * scrollSpeed);
-			judgeTextY = 0.0f;
-			judgeAlpha = 255;
-			judgeHoldTimer = 10;
-			judgeDisplayTimer = 30;
-			n.judged = true;
-			nextNoteIndex[lane]++;
+            SetJudgeDate(lane, n);
+
+            // ロングノーツならホールド開始
+            if (n.type == 2 && n.endTime > n.time)
+            {
+                holding[lane] = true;
+                holdingNoteIndex[lane] = targetIndex;
+            }
+            else
+            {
+                n.judged = true;
+            }
         }
     }
 
@@ -244,6 +238,16 @@ void GameScene::Update()
     {
         finished = true; // 楽曲終了
     }
+}
+
+void GameScene::SetJudgeDate(int lane, Note& n)
+{
+	judgeLane = lane;
+	judgeZ = (float)((n.time - GetSoundCurrentTime(musicHandle) / 1000.0) * scrollSpeed);
+	judgeTextY = 0.0f;
+	judgeAlpha = 255;
+	judgeHoldTimer = 10;
+	judgeDisplayTimer = 30;
 }
 
 void GameScene::DrawCountDown()
@@ -383,14 +387,12 @@ void GameScene::DrawJudgeText()
         break;
     case 3:
         text = "MISS";
-        baseColor = GetColor(120, 120, 120);
+        baseColor = GetColor(0, 0, 0);
         break;
     }
 
     // レーンのX位置を計算
-    float x1 = (judgeLane * laneWidth) - (laneWidth * 2) + 10;
-    float x2 = x1 + laneWidth - 20;
-    float centerX = (x1 + x2) / 2;
+    float centerX = 0;
 
     // 3D → 2D 座標変換
     VECTOR world = VGet(centerX, 30, judgeZ);
@@ -416,7 +418,7 @@ void GameScene::DrawJudgeText()
 
     DrawString(
         (int)screen.x - 40,
-        (int)(screen.y - 20 + judgeTextY),
+        (int)(JUDGE_BASE_Y + judgeTextY),
         text,
         color
     );
@@ -479,13 +481,16 @@ void GameScene::Draw()
             float x1 = xCenter - halfWidth;
             float x2 = xCenter + halfWidth;
 
-            DrawQuad3D(
-                VGet(x1, 0.1f, z),
-                VGet(x2, 0.1f, z),
-                VGet(x2, 0.1f, z + noteHeight),
-                VGet(x1, 0.1f, z + noteHeight),
-                NOTE_TEX
-            );
+            if (!n.judged)
+            {
+                DrawQuad3D(
+                    VGet(x1, 0.1f, z),
+                    VGet(x2, 0.1f, z),
+                    VGet(x2, 0.1f, z + noteHeight),
+                    VGet(x1, 0.1f, z + noteHeight),
+                    NOTE_TEX
+                );
+            }
             continue;
         }
         // ===== ロングノーツ帯 =====

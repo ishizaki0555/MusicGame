@@ -29,7 +29,7 @@ SceneType currentScene = SceneType::TITLE_SCENE;   // 現在のシーン
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
     // DXLib 初期設定
-    SetGraphMode(1280, 720, 32, 30);     // 画面サイズ設定
+    SetGraphMode(1280, 720, 32, 60);     // 画面サイズ設定
     ChangeWindowMode(TRUE);              // ウィンドウモード
 
     SetUseZBuffer3D(TRUE);               // Zバッファ使用

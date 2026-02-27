@@ -13,47 +13,52 @@ void NotesData::LoadFromJson(const nlohmann::json& json)
 
     float secPerBeat = 60.0f / bpm;
 
-    std::function<void(const nlohmann::json&)> parseNote =
-        [&](const nlohmann::json& n)
+    auto calcTime = [&](int num, int LPB)
         {
-            int LPB = n.value("LPB", 4);
-            int num = n.value("num", 0);
-            int block = n.value("block", 0);
-            int type = n.value("type", 1);
-
             float beat = (float)num / LPB;
-            float time = beat * secPerBeat + (offset * 0.01f);
-
-            Note note;
-            note.lane = block;
-            note.endLane = block;   // デフォルトは同じレーン
-            note.time = time;
-            note.endTime = time;
-            note.type = type;
-
-            // ロングノーツ
-            if (n.contains("notes") && !n["notes"].empty())
-            {
-                auto& child = n["notes"][0];
-
-                int endNum = child.value("num", num);
-                int endBlock = child.value("block", block);
-
-                float endBeat = (float)endNum / LPB;
-                note.endTime = endBeat * secPerBeat + (offset * 0.01f);
-                note.endLane = endBlock;
-            }
-
-            notes.push_back(note);
-
-            // 子ノーツも再帰処理
-            if (n.contains("notes"))
-            {
-                for (auto& c : n["notes"])
-                    parseNote(c);
-            }
+            return beat * secPerBeat + offset * 0.01f;   // Unity と同じ
         };
 
     for (auto& n : json["notes"])
-        parseNote(n);
+    {
+        int type = n.value("type", 1);
+        int num = n.value("num", 0);
+        int block = n.value("block", 1);
+        int LPB = n.value("LPB", 4);
+
+        float startTime = calcTime(num, LPB);
+
+        // 通常 or ロング開始
+        Note start;
+        start.type = type;
+        start.lane = block;
+        start.endLane = start.lane;
+        start.time = startTime;
+        start.endTime = startTime;
+        notes.push_back(start);
+
+        // ロング終点
+        if (n.contains("notes") && !n["notes"].empty())
+        {
+            auto& child = n["notes"][0];
+
+            int endNum = child.value("num", num);
+            int endBlock = child.value("block", block);
+            int endLPB = child.value("LPB", LPB);
+
+            float endTime = calcTime(endNum, endLPB);
+
+            Note end;
+            end.type = 2;
+            end.lane = block;
+            end.endLane = endBlock;
+            end.time = startTime;
+            end.endTime = endTime;
+            notes.push_back(end);
+        }
+    }
+
+    std::sort(notes.begin(), notes.end(), [](auto& a, auto& b) {
+        return a.time < b.time;
+        });
 }

@@ -27,6 +27,7 @@ public:
     void DrawCombo();                                // コンボ表示
     void DrawScore();                                // スコア表示
     void DrawSongInfo();                             // 曲名表示
+	void SetJudgeDate(int lane, Note& n);           // 判定データをセット  
 
     int GetScore() const { return score; }           // スコア取得
     int GetMaxCombo() const { return combo; }        // 最大コンボ取得
@@ -73,14 +74,22 @@ private:
     const int NOTE_TEX;                              // ノーツテクスチャ
     const int LONG_NOTE_TEX;                         // ロングノーツテクスチャ
 
-    const float PERFECT_RANGE = 40.0f;               // PERFECT 判定範囲
-    const float GREAT_RANGE = 80.0f;                 // GREAT 判定範囲
-    const float GOOD_RANGE = 120.0f;                 // GOOD 判定範囲
+    const float PERFECT_RANGE = 200;               // PERFECT 判定範囲
+    const float GREAT_RANGE = 240;                 // GREAT 判定範囲
+    const float GOOD_RANGE = 260;                 // GOOD 判定範囲
 
     // 判定関連
-    int nextNoteIndex[4] = { 0, 0, 0, 0 };           // 各レーンの次に判定するノーツ
+    int nextNoteIndex[4] = { 0, 0, 0, 0 };              // 各レーンの次に判定するノーツ
+    bool holding[4] = { false, false, false, false };   // ロングノーツを押しているかどうか
+    int holdingNoteIndex[4] = { -1, -1, -1, -1 };       // どのノーツをホールド中か
     int judgeDisplayTimer = 0;                       // 判定文字の表示タイマー
     int lastJudge = -1;                              // 最後の判定結果
+
+    // キー設定
+    bool prevKey[4] = {false, false , false, false};
+    bool nowKey[4];
+    bool keyDown[4];
+    bool keyUp[4];
 
     int perfectCount = 0;                            // Perfect 数
     int greatCount = 0;                              // Great 数
@@ -101,6 +110,7 @@ private:
     int score = 0;                                   // 表示用スコア
     int combo = 0;                                   // 現在のコンボ
     std::string songName;                            // 曲名
+    const int JUDGE_BASE_Y = 300;                    // 好きな高さに固定
 
     int bannerHandle = -1;                           // バナー画像ハンドル
 
