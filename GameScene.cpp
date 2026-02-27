@@ -47,6 +47,25 @@ int GameScene::JudgeNote(int diffMs)
     return 3;                                // MISS 判定
 }
 
+void GameScene::AddJudgeText(int lane, float z, int judgeType)
+{
+    JudgeTextInfo jt;
+
+    // X座標
+    jt.x = 640;
+
+    // 初期Y
+    jt.y = 300;  // 好きな高さに調整
+
+    jt.z = z;
+    jt.alpha = 255;
+    jt.timer = 30;
+    jt.hold = 10;
+    jt.judgeType = judgeType;
+
+    judgeTexts.push_back(jt);
+}
+
 /// <summary>
 /// 毎フレーム更新処理
 /// </summary>
@@ -55,6 +74,7 @@ void GameScene::Update()
     // ============================
     // カウントダウン処理
     // ============================
+    
     // ゲーム開始前かどうか判定
     if (!started)
     {
@@ -79,8 +99,6 @@ void GameScene::Update()
         KEY_INPUT_K
     };
 
-    
-
     // 各レーンのキー入力を確認
     for (int i = 0; i < 4; i++)
     {
@@ -98,133 +116,12 @@ void GameScene::Update()
     }
 
     // ============================
-    // ノーツ処理（時間ベースの新判定）
+    // 判定処理
     // ============================
     double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0;
 
-    // レーンごとに処理
-    for (int lane = 0; lane < 4; lane++)
-    {
-        // ロングノーツのホールド判定
-        if (holding[lane])
-        {
-            int holdIndex = holdingNoteIndex[lane];
-            if (holdIndex < 0 || holdIndex >= (int)notes.size())
-            {
-                holding[lane] = false;
-                holdingNoteIndex[lane] = -1;
-                continue;
-            }
-
-            Note& n = notes[holdIndex];
-
-            // 終点時間を過ぎたらKeyUp判定へ移行
-            double diffEndSec = currentTime - n.endTime;
-            int diffEndMs = (int)(fabs(diffEndSec) * 1000.0);
-
-            // KeyUp判定
-            if (keyUp[lane])
-            {
-                int result = JudgeNote(diffEndMs);
-                lastJudge = result;
-
-                switch (result)
-                {
-                case 0: perfectCount++; ratioScore += 5; combo++; break;
-                case 1: greatCount++; ratioScore += 3; combo++; break;
-                case 2: goodCount++; ratioScore ++; combo = 0; break;
-                case 3: missCount++; ; combo = 0; break;
-                }
-
-				SetJudgeDate(lane, n);
-
-                n.judged = true;
-                holding[lane] = false;
-                holdingNoteIndex[lane] = -1;
-            }
-            else
-            {
-                // ホールド中に終点範囲を超えたらMISS
-                if (diffEndMs > GOOD_RANGE)
-                {
-                    lastJudge = 3;
-                    missCount++;
-                    combo = 0;
-
-					SetJudgeDate(lane, n);
-
-                    n.judged = true;
-                    holding[lane] = false;
-                    holdingNoteIndex[lane] = -1;
-                }
-            }
-            // 判定が終わったら次のノーツへ
-            continue;
-        }
-
-        // このレーンの一番手前の未判定ノーツを探す
-        int targetIndex = -1;
-        for (int i = 0; i < (int)notes.size(); i++)
-        {
-            if (notes[i].judged) continue;
-            if (notes[i].lane != lane) continue;
-
-            targetIndex = i;
-            break;
-        }
-
-        if (targetIndex == -1) continue; // このレーンに未判定ノーツが無い
-
-        Note& n = notes[targetIndex];
-
-        // ノーツ予定時刻との差（ms）
-        double diffSec = currentTime - n.time;
-        int diffMs = (int)(diffSec * 1000.0);
-
-        // まだかなり早いなら何もしない（早押しは無視）
-        if (diffMs < -GOOD_RANGE) continue;
-
-        // 押さないまま GOOD 範囲を過ぎたら MISS
-        if (diffMs > GOOD_RANGE)
-        {
-            lastJudge = 3;          // MISS
-            missCount++;
-            combo = 0;
-
-            SetJudgeDate(lane, n);
-
-            n.judged = true;
-            continue;
-        }
-
-        // このフレームでキーが押された瞬間だけ判定
-        if (keyDown[lane])
-        {
-            int result = JudgeNote(diffMs);
-            lastJudge = result;
-
-            switch (result)
-            {
-            case 0: perfectCount++; ratioScore += 5; combo++; break;
-            case 1: greatCount++;   ratioScore += 3; combo++; break;
-            case 2: goodCount++;    ratioScore += 1; combo = 0; break;
-            case 3: missCount++;    combo = 0;       break;
-            }
-
-            SetJudgeDate(lane, n);
-
-            // ロングノーツならホールド開始
-            if (n.type == 2 && n.endTime > n.time)
-            {
-                holding[lane] = true;
-                holdingNoteIndex[lane] = targetIndex;
-            }
-            else
-            {
-                n.judged = true;
-            }
-        }
-    }
+    // 一番最初のノーツの判定を行う
+    
 
     // ============================
     // スコア計算
@@ -238,16 +135,6 @@ void GameScene::Update()
     {
         finished = true; // 楽曲終了
     }
-}
-
-void GameScene::SetJudgeDate(int lane, Note& n)
-{
-	judgeLane = lane;
-	judgeZ = (float)((n.time - GetSoundCurrentTime(musicHandle) / 1000.0) * scrollSpeed);
-	judgeTextY = 0.0f;
-	judgeAlpha = 255;
-	judgeHoldTimer = 10;
-	judgeDisplayTimer = 30;
 }
 
 void GameScene::DrawCountDown()
@@ -365,65 +252,44 @@ void GameScene::DrawLaneFlash3D()
 
 void GameScene::DrawJudgeText()
 {
-    if (judgeDisplayTimer <= 0) return; // 表示時間が終わっていたら描画しない
-    if (judgeLane < 0) return;          // 判定レーンが無ければ描画しない
-
-    const char* text = "";
-    int baseColor = GetColor(255, 255, 255);
-
-    switch (lastJudge)   // 判定種別に応じて文字と色を設定
+    for (auto& jt : judgeTexts)
     {
-    case 0:
-        text = "PERFECT";
-        baseColor = GetColor(255, 255, 0);
-        break;
-    case 1:
-        text = "GREAT";
-        baseColor = GetColor(255, 80, 80);
-        break;
-    case 2:
-        text = "GOOD";
-        baseColor = GetColor(80, 255, 120);
-        break;
-    case 3:
-        text = "MISS";
-        baseColor = GetColor(0, 0, 0);
-        break;
+        if (jt.timer <= 0) continue;
+
+        const char* text = "";
+        int baseColor = GetColor(255, 255, 255);
+
+        switch (jt.judgeType)
+        {
+        case 0: text = "PERFECT"; baseColor = GetColor(255, 255, 0); break;
+        case 1: text = "GREAT";   baseColor = GetColor(255, 80, 80); break;
+        case 2: text = "GOOD";    baseColor = GetColor(80, 255, 120); break;
+        case 3: text = "MISS";    baseColor = GetColor(0, 0, 0); break;
+        }
+
+        // スライド処理
+        if (jt.hold > 0)
+            jt.hold--;
+        else
+        {
+            jt.y -= 1.0f;
+            jt.alpha -= 8;
+            if (jt.alpha < 0) jt.alpha = 0;
+        }
+
+        jt.timer--;
+
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, jt.alpha);
+        DrawString((int)jt.x, (int)jt.y, text, baseColor);
+        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
-    // レーンのX位置を計算
-    float centerX = 0;
-
-    // 3D → 2D 座標変換
-    VECTOR world = VGet(centerX, 30, judgeZ);
-    VECTOR screen = ConvWorldPosToScreenPos(world);
-
-    // 静止時間が残っている間は動かさない
-    if (judgeHoldTimer > 0)
-    {
-        judgeHoldTimer--;
-    }
-    else
-    {
-        judgeTextY -= 1.0f;   // 上方向へ移動
-        judgeAlpha -= 8;      // 徐々に透明に
-        if (judgeAlpha < 0) judgeAlpha = 0;
-    }
-
-    int r, g, b;
-    GetColor2(baseColor, &r, &g, &b);
-    int color = GetColor(r, g, b);
-
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, judgeAlpha);
-
-    DrawString(
-        (int)screen.x - 40,
-        (int)(JUDGE_BASE_Y + judgeTextY),
-        text,
-        color
+    // タイマー切れのテキストを削除
+    judgeTexts.erase(
+        std::remove_if(judgeTexts.begin(), judgeTexts.end(),
+            [](const JudgeTextInfo& jt) { return jt.timer <= 0; }),
+        judgeTexts.end()
     );
-
-    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }
 
 void GameScene::Draw()

@@ -16,7 +16,7 @@ void NotesData::LoadFromJson(const nlohmann::json& json)
     auto calcTime = [&](int num, int LPB)
         {
             float beat = (float)num / LPB;
-            return beat * secPerBeat + offset * 0.01f;   // Unity ‚Æ“¯‚¶
+            return beat * secPerBeat + offset * 0.01f;
         };
 
     for (auto& n : json["notes"])

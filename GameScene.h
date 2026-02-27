@@ -27,7 +27,6 @@ public:
     void DrawCombo();                                // コンボ表示
     void DrawScore();                                // スコア表示
     void DrawSongInfo();                             // 曲名表示
-	void SetJudgeDate(int lane, Note& n);           // 判定データをセット  
 
     int GetScore() const { return score; }           // スコア取得
     int GetMaxCombo() const { return combo; }        // 最大コンボ取得
@@ -44,6 +43,19 @@ public:
         int const NORMAL_NOTE = 1;       // 通常ノーツ
         int const LONG_NOTE = 2;          // ロングノーツ
     };
+
+    struct JudgeTextInfo
+    {
+        float x;
+        float y;
+        float z;
+        int alpha;
+        int timer;
+        int hold;
+        int judgeType; // 0=PERFECT,1=GREAT,2=GOOD,3=MISS
+    };
+
+    std::vector<JudgeTextInfo> judgeTexts;
 
     std::string Utf8ToSjis(const std::string& utf8); // UTF-8 → Shift-JIS 変換
 
@@ -74,9 +86,9 @@ private:
     const int NOTE_TEX;                              // ノーツテクスチャ
     const int LONG_NOTE_TEX;                         // ロングノーツテクスチャ
 
-    const float PERFECT_RANGE = 200;               // PERFECT 判定範囲
-    const float GREAT_RANGE = 240;                 // GREAT 判定範囲
-    const float GOOD_RANGE = 260;                 // GOOD 判定範囲
+    const float PERFECT_RANGE = 200;                // PERFECT 判定範囲
+    const float GREAT_RANGE = 240;                  // GREAT 判定範囲
+    const float GOOD_RANGE = 260;                   // GOOD 判定範囲
 
     // 判定関連
     int nextNoteIndex[4] = { 0, 0, 0, 0 };              // 各レーンの次に判定するノーツ
@@ -121,14 +133,15 @@ private:
     // レーン発光
     int laneFlash[4] = { 0, 0, 0, 0 };               // レーン発光タイマー
 
-    int JudgeNote(int diffMs);                       // 判定ロジック
-    void DrawJudgeText();                            // 判定文字描画
-    void DrawLaneFlash3D();                          // レーン発光描画
-    void DrawCountDown();                            // カウントダウン描画
+    int JudgeNote(int diffMs);                              // 判定ロジック
+	void AddJudgeText(int lane, float z, int judgeType);    // 判定データをセットして、判定文字表示の準備をする
+    void DrawJudgeText();                                   // 判定文字描画
+    void DrawLaneFlash3D();                                 // レーン発光描画
+    void DrawCountDown();                                   // カウントダウン描画
 
-    void DrawJudgeZone();                            // 判定ゾーン描画（デバッグ用）
+    void DrawJudgeZone();                                   // 判定ゾーン描画（デバッグ用）
 
-    void DrawQuad3D(                                 // 3D四角形描画
+    void DrawQuad3D(                                        // 3D四角形描画
         const VECTOR& p1,
         const VECTOR& p2,
         const VECTOR& p3,
