@@ -28,8 +28,6 @@ public:
     void DrawScore();                                // スコア表示
     void DrawSongInfo();                             // 曲名表示
 
-	void Judgement(float timeLag, int numOffset);          // 判定処理
-
     int GetScore() const { return score; }           // スコア取得
     int GetMaxCombo() const { return combo; }        // 最大コンボ取得
     int GetPerfect() const { return perfectCount; }  // Perfect数取得

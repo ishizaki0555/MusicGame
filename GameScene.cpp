@@ -181,11 +181,6 @@ void GameScene::Update()
     }
 }
 
-void GameScene::Judgement(float timeLag, int numOffset)
-{
-}
-
-
 void GameScene::DrawCountDown()
 {
     if (started) return;   // ŠJŽnŒã‚Í•\Ž¦‚µ‚È‚¢
