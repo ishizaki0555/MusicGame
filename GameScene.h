@@ -28,6 +28,8 @@ public:
     void DrawScore();                                // スコア表示
     void DrawSongInfo();                             // 曲名表示
 
+	void Judgement(float timeLag, int numOffset);          // 判定処理
+
     int GetScore() const { return score; }           // スコア取得
     int GetMaxCombo() const { return combo; }        // 最大コンボ取得
     int GetPerfect() const { return perfectCount; }  // Perfect数取得
@@ -63,7 +65,7 @@ public:
     bool IsFinished() const { return finished; }     // 終了判定
 
 private:
-    std::vector<Note> notes;                         // ノーツ一覧
+    std::vector<JudgeNote> notes;                    // ノーツ一覧
 
     float laneWidth = 100.0f;                        // レーン幅
     float noteHeight = 20.0f;                        // ノーツの奥行き
@@ -74,8 +76,7 @@ private:
     const float LANE_THICKNESS = 10.0f;              // レーンの厚み
     const float NOTE_THICKNESS = 5.0f;               // ノーツの厚み
     const float LANE_BASE_Y = 0;                     // レーンのY座標
-    const float JUDGE_LINE_Z = -210.0f;              // 判定ラインのZ座標
-    const float NOTE_OFFSET_Z = -700.0f;             // ノーツ描画用のオフセット
+    const float JUDGE_LINE_Z = -200.0f;              // 判定ラインのZ座標
     const float FLASH_LINE_Z = 2700.0f;              // レーン発光の奥行き
 
     int musicHandle = -1;                            // 楽曲ハンドル
@@ -86,9 +87,9 @@ private:
     const int NOTE_TEX;                              // ノーツテクスチャ
     const int LONG_NOTE_TEX;                         // ロングノーツテクスチャ
 
-    const float PERFECT_RANGE = 200;                // PERFECT 判定範囲
-    const float GREAT_RANGE = 240;                  // GREAT 判定範囲
-    const float GOOD_RANGE = 260;                   // GOOD 判定範囲
+    const float PERFECT_RANGE = 0.20f;                // PERFECT 判定範囲
+    const float GREAT_RANGE = 0.24f;                  // GREAT 判定範囲
+    const float GOOD_RANGE = 0.26f;                   // GOOD 判定範囲
 
     // 判定関連
     int nextNoteIndex[4] = { 0, 0, 0, 0 };              // 各レーンの次に判定するノーツ
@@ -122,7 +123,7 @@ private:
     int score = 0;                                   // 表示用スコア
     int combo = 0;                                   // 現在のコンボ
     std::string songName;                            // 曲名
-    const int JUDGE_BASE_Y = 300;                    // 好きな高さに固定
+    const int JUDGE_BASE_Y = 300;                    // 判定のテキストのY固定座標
 
     int bannerHandle = -1;                           // バナー画像ハンドル
 
@@ -133,8 +134,8 @@ private:
     // レーン発光
     int laneFlash[4] = { 0, 0, 0, 0 };               // レーン発光タイマー
 
-    int JudgeNote(int diffMs);                              // 判定ロジック
-	void AddJudgeText(int lane, float z, int judgeType);    // 判定データをセットして、判定文字表示の準備をする
+    int Judge(int diffMs);                              // 判定ロジック
+	void AddJudgeText(int lane, int judgeType);    // 判定データをセットして、判定文字表示の準備をする
     void DrawJudgeText();                                   // 判定文字描画
     void DrawLaneFlash3D();                                 // レーン発光描画
     void DrawCountDown();                                   // カウントダウン描画

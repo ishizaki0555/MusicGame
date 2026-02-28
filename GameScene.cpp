@@ -23,7 +23,7 @@ GameScene::GameScene(const NotesData& notesData, int banner)
     , NOTE_TEX(LoadGraph("Texture/NoteTexture.png"))
     , LONG_NOTE_TEX(LoadGraph("Texture/LongNoteTexture.png"))
 {
-    notes = notesData.notes;                 // ノーツ一覧をコピー
+    notes = notesData.judgeNotes;            // ノーツ一覧をコピー
     songName = notesData.title;              // 曲名を保存
     bannerHandle = banner;                   // バナーハンドルを保存
 
@@ -37,7 +37,7 @@ GameScene::GameScene(const NotesData& notesData, int banner)
 // @brief 判定ロジック
 // @param diffMs 判定ラインとの差（ミリ秒）
 // @return 判定結果（0=PERFECT,1=GREAT,2=GOOD,3=MISS）
-int GameScene::JudgeNote(int diffMs)
+int GameScene::Judge(int diffMs)
 {
     diffMs = abs(diffMs);
 
@@ -47,23 +47,30 @@ int GameScene::JudgeNote(int diffMs)
     return 3;                                // MISS 判定
 }
 
-void GameScene::AddJudgeText(int lane, float z, int judgeType)
+void GameScene::AddJudgeText(int lane, int result)
 {
     JudgeTextInfo jt;
 
-    // X座標
     jt.x = 640;
-
-    // 初期Y
-    jt.y = 300;  // 好きな高さに調整
-
-    jt.z = z;
-    jt.alpha = 255;
+    jt.y = JUDGE_BASE_Y;
+	jt.alpha = 255;
     jt.timer = 30;
     jt.hold = 10;
-    jt.judgeType = judgeType;
+    jt.judgeType = result;
 
-    judgeTexts.push_back(jt);
+    // スコア計算
+    switch (result)
+    {
+    case 0: perfectCount++; ratioScore += 5; combo++; break;
+    case 1: greatCount++;   ratioScore += 3; combo++; break;
+    case 2: goodCount++;    ratioScore += 1; combo = 0; break;
+    case 3: missCount++;    combo = 0; break;
+    }
+
+    // 現在のノーツを判定済みにして次のノーツへ
+    notes.erase(notes.begin());
+
+	judgeTexts.push_back(jt);
 }
 
 /// <summary>
@@ -121,6 +128,43 @@ void GameScene::Update()
     double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0;
 
     // 一番最初のノーツの判定を行う
+    if (!notes.empty())
+    {
+        JudgeNote& jn = notes[0];
+
+        float timeLag = fabs(currentTime - jn.time);
+
+        // キーが押されたら判定を行う
+        if (keyDown[jn.lane])
+        {
+            int result;
+            if (timeLag <= PERFECT_RANGE)
+            {
+                result = 0;
+                AddJudgeText(jn.lane, result);
+            }
+            else if (timeLag <= GREAT_RANGE)
+            {
+                result = 1;
+                AddJudgeText(jn.lane, result);
+            }
+            else if (timeLag <= GOOD_RANGE)
+            {
+                result = 2;
+                AddJudgeText(jn.lane, result);
+            }
+        }
+        // ノーツを見逃した場合の処理
+        else if (currentTime > notes[0].time + 0.2f)
+        {
+            AddJudgeText(jn.lane, 3);
+            missCount++;
+            combo = 0;
+
+            // 現在のノーツを判定済みにして次のノーツへ
+            notes.erase(notes.begin());
+        }
+    }
     
 
     // ============================
@@ -136,6 +180,11 @@ void GameScene::Update()
         finished = true; // 楽曲終了
     }
 }
+
+void GameScene::Judgement(float timeLag, int numOffset)
+{
+}
+
 
 void GameScene::DrawCountDown()
 {
@@ -334,59 +383,23 @@ void GameScene::Draw()
 
     for (auto& n : notes)
     {
-        // ===== 通常ノーツ & ロングノーツ始点 =====
-        if (n.type == 1 || (n.type == 2 && n.time == n.endTime))
-        {
-            float dt = n.time - currentTime;
-            float z = dt * scrollSpeed + NOTE_OFFSET_Z;
+        float dt = n.time - currentTime;
+        float z = dt * scrollSpeed;
 
-            if (z < LANE_FRONT || z > LANE_DEPTH) continue;
+        // ノーツがレーンの範囲内にある場合のみ描画
+        if (z < LANE_FRONT || z > LANE_DEPTH) continue;
 
-            float xCenter = -2 * laneWidth + laneWidth * n.lane + laneWidth / 2;
-            float halfWidth = laneWidth / 3;
-            float x1 = xCenter - halfWidth;
-            float x2 = xCenter + halfWidth;
+        float xCenter = -2 * laneWidth + laneWidth * n.lane + laneWidth / 2;
+        float halfWidth = laneWidth / 3;
 
-            if (!n.judged)
-            {
-                DrawQuad3D(
-                    VGet(x1, 0.1f, z),
-                    VGet(x2, 0.1f, z),
-                    VGet(x2, 0.1f, z + noteHeight),
-                    VGet(x1, 0.1f, z + noteHeight),
-                    NOTE_TEX
-                );
-            }
-            continue;
-        }
-        // ===== ロングノーツ帯 =====
-        if (n.type == 2 && n.endTime > n.time)
-        {
-            float dtStart = n.time - currentTime;
-            float dtEnd = n.endTime - currentTime;
-
-            float zStart = dtStart * scrollSpeed + NOTE_OFFSET_Z;
-            float zEnd = dtEnd * scrollSpeed + NOTE_OFFSET_Z;
-
-            if ((zStart < LANE_FRONT && zEnd < LANE_FRONT) ||
-                (zStart > LANE_DEPTH && zEnd > LANE_DEPTH))
-                continue;
-
-            float xCenter = -2 * laneWidth + laneWidth * n.lane + laneWidth / 2;
-            float halfWidth = laneWidth / 3;
-            float x1 = xCenter - halfWidth;
-            float x2 = xCenter + halfWidth;
-
-            DrawQuad3D(
-                VGet(x1, 0.1f, zStart),
-                VGet(x2, 0.1f, zStart),
-                VGet(x2, 0.1f, zEnd),
-                VGet(x1, 0.1f, zEnd),
-                LONG_NOTE_TEX
-            );
-        }
+        DrawQuad3D(
+            VGet(xCenter - halfWidth, 0.1f, z),
+            VGet(xCenter + halfWidth, 0.1f, z),
+            VGet(xCenter + halfWidth, 0.1f, z + noteHeight),
+            VGet(xCenter - halfWidth, 0.1f, z + noteHeight),
+            NOTE_TEX
+        );
     }
-
 
     // レーン発光
     DrawLaneFlash3D();
