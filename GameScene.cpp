@@ -29,9 +29,40 @@ GameScene::GameScene(const NotesData& notesData, int banner)
 
     musicHandle = LoadSoundMem(notesData.musicPath.c_str()); // 楽曲読み込み
 
+    // 効果音の読み込み
+    hitSE = LoadSoundMem("Sounds/hit.mp3");
+    rongSE = LoadSoundMem("Sounds/rong.mp3");
+
     // スコアの最大値をノーツ数から計算
     int noteNum = static_cast<int>(notes.size());
     maxScore = noteNum * 5;
+
+    // longBodies 生成箇所
+    for (int i = 0; i < notes.size(); i++)
+    {
+        if (notes[i].type == 2) // start
+        {
+            for (int j = i + 1; j < notes.size(); j++)
+            {
+                if (notes[j].type == 3 && notes[j].lane == notes[i].lane)
+                {
+                    LongBody body;
+                    // ここで強制正規化（譜面が 1..4 の場合に備える）
+                    int lane = notes[i].lane;
+                    if (lane > 3) lane = lane - 1; // 1..4 -> 0..3 の補正
+                    body.lane = lane;
+                    body.startTime = notes[i].time;
+                    body.endTime = notes[j].time;
+                    longBodies.push_back(body);
+                    break;
+                }
+            }
+        }
+    }
+
+    // ノーツ消費フラグを初期化
+    noteConsumed.resize(notes.size(), 0);
+    for (int i = 0; i < 4; i++) nextNoteIndex[i] = false;
 }
 
 // @brief 判定ロジック
@@ -47,7 +78,7 @@ int GameScene::Judge(int diffMs)
     return 3;                                // MISS 判定
 }
 
-void GameScene::AddJudgeText(int lane, int result)
+void GameScene::AddJudgeText(int lane, int result, int noteIndex)
 {
     JudgeTextInfo jt;
 
@@ -67,8 +98,9 @@ void GameScene::AddJudgeText(int lane, int result)
     case 3: missCount++;    combo = 0; break;
     }
 
-    // 現在のノーツを判定済みにして次のノーツへ
-    notes.erase(notes.begin());
+    // 現在のノーツを判定済みにして描画を終了する
+    if (noteIndex >= 0 && noteIndex < static_cast<int>(noteConsumed.size()))
+        noteConsumed[noteIndex] = 1;
 
 	judgeTexts.push_back(jt);
 }
@@ -127,42 +159,104 @@ void GameScene::Update()
     // ============================
     double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0;
 
-    // 一番最初のノーツの判定を行う
-    if (!notes.empty())
+    // レーンごとに次の未処理ノーツを確認して判定
+    for (int lane = 0; lane < 4; lane++)
     {
-        JudgeNote& jn = notes[0];
-
-        float timeLag = fabs(currentTime - jn.time);
-
-        // キーが押されたら判定を行う
-        if (keyDown[jn.lane])
+        int idx = nextNoteIndex[lane];
+        while (idx < static_cast<int>(notes.size()))
         {
-            int result;
-            if (timeLag <= PERFECT_RANGE)
+            if (notes[idx].lane == lane && !noteConsumed[idx]) break;
+            ++idx;
+        }
+		// 次のノーツが存在する場合、判定を行う
+        nextNoteIndex[lane] = idx;
+
+        if (idx >= static_cast<int>(notes.size())) continue; // そのレーンに未処理ノーツなし
+
+        JudgeNote& note = notes[idx];
+        float timeLag = fabs(currentTime - note.time);
+
+        // 通常ノーツかロングノーツの始点の場合は押す動作で判定
+        if (notes[idx].type == 1 || notes[idx].type == 2)
+        {
+            // キーが押された瞬間に判定
+            if (keyDown[lane])
             {
-                result = 0;
-                AddJudgeText(jn.lane, result);
+                if (timeLag <= PERFECT_RANGE)
+                {
+                    if (note.type == 2) holding[lane] = true;
+                    if (note.type == 3) holding[lane] = false;
+					PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ヒット音再生
+                    AddJudgeText(lane, 0, idx);
+                }
+                else if (timeLag <= GREAT_RANGE)
+                {
+                    if (note.type == 2) holding[lane] = true;
+                    if (note.type == 3) holding[lane] = false;
+                    PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ヒット音再生
+                    AddJudgeText(lane, 1, idx);
+                }
+                else if (timeLag <= GOOD_RANGE)
+                {
+                    if (note.type == 2) holding[lane] = true;
+                    if (note.type == 3) holding[lane] = false;
+                    PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ヒット音再生
+                    AddJudgeText(lane, 2, idx);
+                }
             }
-            else if (timeLag <= GREAT_RANGE)
+            else
             {
-                result = 1;
-                AddJudgeText(jn.lane, result);
-            }
-            else if (timeLag <= GOOD_RANGE)
-            {
-                result = 2;
-                AddJudgeText(jn.lane, result);
+                // 見逃し判定
+                if (currentTime > note.time + 0.2f)
+                {
+                    if (note.type == 2) holding[lane] = false;
+                    if (note.type == 3) holding[lane] = false;
+                    AddJudgeText(lane, 3, idx);
+                    missCount++;
+                    combo = 0;
+                }
             }
         }
-        // ノーツを見逃した場合の処理
-        else if (currentTime > notes[0].time + 0.2f)
+        // ロングノーツの終点の場合は離す動作で判定
+        else if (notes[idx].type == 3)
         {
-            AddJudgeText(jn.lane, 3);
-            missCount++;
-            combo = 0;
-
-            // 現在のノーツを判定済みにして次のノーツへ
-            notes.erase(notes.begin());
+            // キーが離れた瞬間に判定
+            if (keyUp[lane])
+            {
+                if (timeLag <= PERFECT_RANGE)
+                {
+                    if (note.type == 2) holding[lane] = false;
+                    if (note.type == 3) holding[lane] = false;
+                    PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ヒット音再生
+                    AddJudgeText(lane, 0, idx);
+                }
+                else if (timeLag <= GREAT_RANGE)
+                {
+                    if (note.type == 2) holding[lane] = false;
+                    if (note.type == 3) holding[lane] = false;
+                    PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ヒット音再生
+                    AddJudgeText(lane, 1, idx);
+                }
+                else if (timeLag <= GOOD_RANGE)
+                {
+                    if (note.type == 2) holding[lane] = false;
+                    if (note.type == 3) holding[lane] = false;
+                    PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ヒット音再生
+                    AddJudgeText(lane, 2, idx);
+                }
+            }
+            else
+            {
+                // 見逃し判定
+                if (currentTime > note.time + 0.2f)
+                {
+                    if (note.type == 2) holding[lane] = false;
+                    if (note.type == 3) holding[lane] = false;
+                    AddJudgeText(lane, 3, idx);
+                    missCount++;
+                    combo = 0;
+                }
+            }
         }
     }
     
@@ -191,68 +285,6 @@ void GameScene::DrawCountDown()
     sprintf_s(buf, "%d", sec);
 
     DrawString(600, 300, buf, GetColor(255, 255, 255)); // カウントダウン表示
-}
-
-void GameScene::DrawJudgeZone()
-{
-    // レーン全体の幅
-    float x1 = -200;
-    float x2 = 200;
-
-    // 判定ゾーン描画ラムダ
-    auto drawZone = [&](float z1, float z2, int r, int g, int b)
-        {
-            VERTEX3D v[6];
-
-            auto setV = [&](int idx, float x, float y, float z)
-                {
-                    v[idx].pos = VGet(x, y, z);
-                    v[idx].norm = VGet(0, 1, 0);
-                    v[idx].dif = GetColorU8(r, g, b, 120);
-                    v[idx].spc = GetColorU8(0, 0, 0, 0);
-                    v[idx].u = 0;
-                    v[idx].v = 0;
-                };
-
-            setV(0, x1, 0, z1);
-            setV(1, x2, 0, z1);
-            setV(2, x2, 0, z2);
-
-            setV(3, x1, 0, z1);
-            setV(4, x2, 0, z2);
-            setV(5, x1, 0, z2);
-
-            DrawPolygon3D(v, 2, LANE_TEX, TRUE);
-        };
-
-    // PERFECT
-    drawZone(JUDGE_LINE_Z - PERFECT_RANGE,
-        JUDGE_LINE_Z + PERFECT_RANGE,
-        255, 255, 0);
-
-    // GREAT
-    drawZone(JUDGE_LINE_Z - GREAT_RANGE,
-        JUDGE_LINE_Z - PERFECT_RANGE,
-        255, 80, 80);
-    drawZone(JUDGE_LINE_Z + PERFECT_RANGE,
-        JUDGE_LINE_Z + GREAT_RANGE,
-        255, 80, 80);
-
-    // GOOD
-    drawZone(JUDGE_LINE_Z - GOOD_RANGE,
-        JUDGE_LINE_Z - GREAT_RANGE,
-        80, 255, 120);
-    drawZone(JUDGE_LINE_Z + GREAT_RANGE,
-        JUDGE_LINE_Z + GOOD_RANGE,
-        80, 255, 120);
-
-    // MISS
-    drawZone(JUDGE_LINE_Z - GOOD_RANGE - 60,
-        JUDGE_LINE_Z - GOOD_RANGE,
-        120, 120, 120);
-    drawZone(JUDGE_LINE_Z + GOOD_RANGE,
-        JUDGE_LINE_Z + GOOD_RANGE + 60,
-        120, 120, 120);
 }
 
 void GameScene::DrawLaneFlash3D()
@@ -340,8 +372,8 @@ void GameScene::Draw()
 {
     DrawBox(0, 0, 1280, 720, GetColor(20, 20, 20), TRUE); // 背景
 
-    VECTOR eye = VGet(0.0f, 200.0f, -300.0f);
-    VECTOR target = VGet(0.0f, 50.0f, -100.0f);
+    VECTOR eye = VGet(0.0f, 220.0f, -110.0f);
+    VECTOR target = VGet(0.0f, 50.0f, 100.0f);
 
     SetCameraPositionAndTarget_UpVecY(eye, target); // カメラ設定
 
@@ -373,33 +405,88 @@ void GameScene::Draw()
 
     if (!started) return; // 開始前はノーツを描画しない
 
-    // ノーツ描画
+    // Draw() 内、currentTime を取得した直後に longBodies を先に描画するブロックを追加
     double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0;
 
-    for (auto& n : notes)
+    // LongBody（帯）を先に描画（longBodies はコンストラクタで生成済み）
+    for (auto& b : longBodies)
     {
-        float dt = n.time - currentTime;
-        float z = dt * scrollSpeed;
+        float dtStart = b.startTime - currentTime;
+        float dtEnd = b.endTime - currentTime;
 
-        // ノーツがレーンの範囲内にある場合のみ描画
-        if (z < LANE_FRONT || z > LANE_DEPTH) continue;
+        float zStart = dtStart * scrollSpeed;
+        float zEnd = dtEnd * scrollSpeed;
 
-        float xCenter = -2 * laneWidth + laneWidth * n.lane + laneWidth / 2;
+        // ホールド中は帯の終点を判定ラインに固定（判定ラインより奥側を描かない）
+        if (b.lane >= 0 && b.lane < 4 && holding[b.lane] && zStart <= JUDGE_LINE_Z)
+            zStart = JUDGE_LINE_Z;
+
+        // 画面外チェック（帯が完全に画面外なら描画しない）
+        if ((zStart < LANE_FRONT && zEnd < LANE_FRONT) || (zStart> LANE_DEPTH && zEnd > LANE_DEPTH))
+            continue;
+
+        float xCenter = -2 * laneWidth + laneWidth * b.lane + laneWidth / 2;
         float halfWidth = laneWidth / 3;
 
         DrawQuad3D(
-            VGet(xCenter - halfWidth, 0.1f, z),
-            VGet(xCenter + halfWidth, 0.1f, z),
-            VGet(xCenter + halfWidth, 0.1f, z + noteHeight),
-            VGet(xCenter - halfWidth, 0.1f, z + noteHeight),
-            NOTE_TEX
+            VGet(xCenter - halfWidth, 0.1f, zStart),
+            VGet(xCenter + halfWidth, 0.1f, zStart),
+            VGet(xCenter + halfWidth, 0.1f, zEnd),
+            VGet(xCenter - halfWidth, 0.1f, zEnd),
+            LONG_NOTE_TEX
         );
+    }
+
+    // 既存のノーツ描画（判定用 notes をそのまま描画）
+    for (int i = 0; i < notes.size(); i++)
+    {
+        if (noteConsumed[i]) continue;
+
+        JudgeNote& n = notes[i];
+
+        // 通常ノーツ & ロング開始ノーツ（始点）
+        if (n.type == 1 || n.type == 2)
+        {
+            float dt = n.time - currentTime;
+            float z = dt * scrollSpeed;
+
+            if (z < LANE_FRONT || z > LANE_DEPTH) continue;
+
+            float xCenter = -2 * laneWidth + laneWidth * n.lane + laneWidth / 2;
+            float halfWidth = laneWidth / 3;
+
+            DrawQuad3D(
+                VGet(xCenter - halfWidth, 0.1f, z),
+                VGet(xCenter + halfWidth, 0.1f, z),
+                VGet(xCenter + halfWidth, 0.1f, z + noteHeight),
+                VGet(xCenter - halfWidth, 0.1f, z + noteHeight),
+                NOTE_TEX
+            );
+        }
+
+        // ロング終了ノーツ（終点）
+        if (n.type == 3)
+        {
+            float dt = n.time - currentTime;
+            float z = dt * scrollSpeed;
+
+            if (z < LANE_FRONT || z > LANE_DEPTH) continue;
+
+            float xCenter = -2 * laneWidth + laneWidth * n.lane + laneWidth / 2;
+            float halfWidth = laneWidth / 3;
+
+            DrawQuad3D(
+                VGet(xCenter - halfWidth, 0.1f, z),
+                VGet(xCenter + halfWidth, 0.1f, z),
+                VGet(xCenter + halfWidth, 0.1f, z + noteHeight),
+                VGet(xCenter - halfWidth, 0.1f, z + noteHeight),
+                NOTE_TEX
+            );
+        }
     }
 
     // レーン発光
     DrawLaneFlash3D();
-
-    DrawJudgeZone();
 
     // 判定文字
     DrawJudgeText();

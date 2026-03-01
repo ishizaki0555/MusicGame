@@ -9,6 +9,7 @@ MusicSelectUI::MusicSelectUI(const fs::path& folder)
     : folderPath(folder)
     , longPressValue(50)
 {
+    selectSE = LoadSoundMem("Sounds/select.mp3");
 }
 
 MusicSelectUI::~MusicSelectUI()
@@ -265,6 +266,7 @@ void MusicSelectUI::Update()
     {
         if (upTimer == 0 || (upTimer > longPressValue && upTimer % 10 == 0))
         {
+			PlaySoundMem(selectSE, DX_PLAYTYPE_BACK);
             selectedIndex = (selectedIndex - 1 + musicList.size()) % musicList.size();
         }
         upTimer++;
@@ -276,6 +278,7 @@ void MusicSelectUI::Update()
     {
         if (downTimer == 0 || (downTimer > longPressValue && downTimer % 10 == 0))
         {
+            PlaySoundMem(selectSE, DX_PLAYTYPE_BACK);
             selectedIndex = (selectedIndex + 1) % musicList.size();
         }
         downTimer++;
@@ -304,6 +307,7 @@ void MusicSelectUI::Update()
 
         if (t == 0 || (t > longPressValue && t % 10 == 0))
         {
+            PlaySoundMem(selectSE, DX_PLAYTYPE_BACK);
             diffIndex = (diffIndex - 1 + 4) % 4;
         }
         t++;
@@ -321,6 +325,7 @@ void MusicSelectUI::Update()
 
         if (t == 0 || (t > longPressValue && t % 10 == 0))
         {
+            PlaySoundMem(selectSE, DX_PLAYTYPE_BACK);
             diffIndex = (diffIndex + 1) % 4;
         }
         t++;

@@ -98,6 +98,8 @@ private:
     float scrollOffset = 0.0f;
     const int longPressValue;
 
+    int selectSE = -1;      // ‘I‹È•ÏX‰¹
+
     int titleScroll = 0;
     int titleScrollTimer = 0;
 

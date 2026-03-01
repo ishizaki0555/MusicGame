@@ -44,6 +44,14 @@ public:
         int const LONG_NOTE = 2;          // ロングノーツ
     };
 
+	// ロングノーツの描画用データ
+    struct LongBody 
+    {
+		int lane;               // レーン
+		float startTime;        // 開始時間
+		float endTime;          // 終了時間
+    };
+
     struct JudgeTextInfo
     {
         float x;
@@ -64,6 +72,8 @@ public:
 
 private:
     std::vector<JudgeNote> notes;                    // ノーツ一覧
+	std::vector<LongBody> longBodies;                // ロングノーツの描画用データ
+	std::vector<int> noteConsumed;				     // ノーツ消費フラグ
 
     float laneWidth = 100.0f;                        // レーン幅
     float noteHeight = 20.0f;                        // ノーツの奥行き
@@ -74,7 +84,7 @@ private:
     const float LANE_THICKNESS = 10.0f;              // レーンの厚み
     const float NOTE_THICKNESS = 5.0f;               // ノーツの厚み
     const float LANE_BASE_Y = 0;                     // レーンのY座標
-    const float JUDGE_LINE_Z = -200.0f;              // 判定ラインのZ座標
+    const float JUDGE_LINE_Z = 0.0f;              // 判定ラインのZ座標
     const float FLASH_LINE_Z = 2700.0f;              // レーン発光の奥行き
 
     int musicHandle = -1;                            // 楽曲ハンドル
@@ -85,16 +95,20 @@ private:
     const int NOTE_TEX;                              // ノーツテクスチャ
     const int LONG_NOTE_TEX;                         // ロングノーツテクスチャ
 
-    const float PERFECT_RANGE = 0.20f;                // PERFECT 判定範囲
-    const float GREAT_RANGE = 0.24f;                  // GREAT 判定範囲
-    const float GOOD_RANGE = 0.26f;                   // GOOD 判定範囲
+    const float PERFECT_RANGE = 0.10f;                // PERFECT 判定範囲
+    const float GREAT_RANGE = 0.12f;                  // GREAT 判定範囲
+    const float GOOD_RANGE = 0.13f;                   // GOOD 判定範囲
 
     // 判定関連
     int nextNoteIndex[4] = { 0, 0, 0, 0 };              // 各レーンの次に判定するノーツ
     bool holding[4] = { false, false, false, false };   // ロングノーツを押しているかどうか
     int holdingNoteIndex[4] = { -1, -1, -1, -1 };       // どのノーツをホールド中か
-    int judgeDisplayTimer = 0;                       // 判定文字の表示タイマー
-    int lastJudge = -1;                              // 最後の判定結果
+    int judgeDisplayTimer = 0;                          // 判定文字の表示タイマー
+    int lastJudge = -1;                                 // 最後の判定結果
+
+    // 効果音関連
+    int hitSE = -1;                                     // 通常ノーツヒット音
+	int rongSE = -1;    							    // ロングノーツヒット音      
 
     // キー設定
     bool prevKey[4] = {false, false , false, false};
@@ -133,12 +147,10 @@ private:
     int laneFlash[4] = { 0, 0, 0, 0 };               // レーン発光タイマー
 
     int Judge(int diffMs);                              // 判定ロジック
-	void AddJudgeText(int lane, int judgeType);    // 判定データをセットして、判定文字表示の準備をする
+	void AddJudgeText(int lane, int judgeType, int noteIndex);    // 判定データをセットして、判定文字表示の準備をする
     void DrawJudgeText();                                   // 判定文字描画
     void DrawLaneFlash3D();                                 // レーン発光描画
     void DrawCountDown();                                   // カウントダウン描画
-
-    void DrawJudgeZone();                                   // 判定ゾーン描画（デバッグ用）
 
     void DrawQuad3D(                                        // 3D四角形描画
         const VECTOR& p1,
