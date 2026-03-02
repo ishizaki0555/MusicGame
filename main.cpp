@@ -16,6 +16,7 @@
 #include "GameScene.h"
 #include "ResultScene.h"
 
+// シーンの種類
 enum class SceneType
 {
     TITLE_SCENE,     // タイトル画面
@@ -26,6 +27,7 @@ enum class SceneType
 
 SceneType currentScene = SceneType::TITLE_SCENE;   // 現在のシーン
 
+// エントリーポイント
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
     // DXLib 初期設定
@@ -134,6 +136,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                     // リザルト破棄
                     delete result;
                     result = nullptr;
+
+                    // キーの状態をリセット
+                    selectUI.sceneStarted = false;
+                    selectUI.ResetInputState();
+
                     currentScene = SceneType::SELECT_SCENE; // 選曲へ戻る
                 }
                 break;

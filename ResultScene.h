@@ -13,6 +13,15 @@
 #include <DxLib.h>
 #include <string>
 
+// 判定の種類
+enum class JudgeNum
+{
+	PERFECT = 0,
+	GREAT,
+	GOOD,
+	MISS
+};
+
 class ResultScene
 {
 public:
@@ -41,7 +50,11 @@ public:
 	// @param 変換させたい文字
 	std::string Utf8ToSjis(const std::string& utf8);
 
-	bool goNext = false;
+	bool goNext = false;	// 次のシーンに遷移するかのフラグ
+	int bgmHandle = -1;     // リザルト画面BGM
+
+	bool prevEnter = false;
+	bool prevSpace = false;
 
 private:
 
@@ -49,9 +62,18 @@ private:
 	int maxCombo;			// 最大コンボ
 	int bannerHandle;		// バナー情報
 	std::string songName;	// 曲名
+	JudgeNum judgeNum;		// 判定の種類
 
 	int perfectCount = 0;	// Perfect判定
 	int greatCount = 0;		// Great判定
 	int goodCount = 0;		// Good判定
 	int missCount = 0;		// Miss判定
+
+	// 判定の文字色
+	unsigned int judgeTextColor[4] = { GetColor(255, 255, 0) , GetColor(255, 80, 80) , GetColor(80, 255, 120) , GetColor(180, 180, 180) };
+
+	int judgeFont = -1;
+	int scoreFont = -1;
+	int songNameFont = -1;
+	int comboFont = -1;
 };

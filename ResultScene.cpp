@@ -23,6 +23,14 @@
 ResultScene::ResultScene(int score, int combo, int perfect, int great, int good, int miss, const std::string& songName, int banner)
 	: score(score), maxCombo(combo), perfectCount(perfect), greatCount(great), goodCount(good), missCount(miss), songName(songName), bannerHandle(banner)
 {
+	judgeFont = CreateFontToHandle("Fonts/BIZ-UDMinchoM.ttc", 32, 3);
+	scoreFont = CreateFontToHandle("Fonts/BIZ-UDMinchoM.ttc", 48, 3);
+	songNameFont = CreateFontToHandle("Fonts/BIZ-UDMinchoM.ttc", 48, 3);
+	comboFont = CreateFontToHandle("Fonts/BIZ-UDMinchoM.ttc", 32, 3);
+
+	// リザルト画面のBGMを再生
+	bgmHandle = LoadSoundMem("Sounds/result.wav");
+	PlaySoundMem(bgmHandle, DX_PLAYTYPE_LOOP);
 }
 
 // @brief 更新します
@@ -33,9 +41,24 @@ ResultScene::~ResultScene()
 // @brief 更新します
 void ResultScene::Update()
 {
-	// エンターキーかスペースキーで選曲画面に遷移
-	if (CheckHitKey(KEY_INPUT_RETURN) || CheckHitKey(KEY_INPUT_SPACE))
+	// 現在のキー状態
+	bool nowEnter = (CheckHitKey(KEY_INPUT_RETURN) != 0);
+	bool nowSpace = (CheckHitKey(KEY_INPUT_SPACE) != 0);
+
+	// 押した瞬間だけ true
+	bool enterDown = (nowEnter && !prevEnter);
+	bool spaceDown = (nowSpace && !prevSpace);
+
+	// 次フレームのために保存
+	prevEnter = nowEnter;
+	prevSpace = nowSpace;
+
+	// 決定
+	if (enterDown || spaceDown)
+	{
+		StopSoundMem(bgmHandle);
 		goNext = true;
+	}
 }
 
 // @brief 描画します
@@ -52,6 +75,7 @@ void ResultScene::Draw()
 		DrawExtendGraph(0, 0, 1280, 720, bannerHandle, TRUE);
 	}
 
+	// 半透明に描画
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
 	DrawBox(0, 0, 1280, 720, GetColor(0, 0, 0), TRUE);
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
@@ -60,7 +84,8 @@ void ResultScene::Draw()
 	// 曲名
 	// ==============================
 	std::string sjis = Utf8ToSjis(songName);
-	DrawString(100, 50, sjis.c_str(), GetColor(255, 255, 255));
+	int titleW = GetDrawStringWidth(sjis.c_str(), sjis.size(), songNameFont);
+	DrawStringToHandle(640 - titleW / 2, 40, sjis.c_str(), GetColor(255, 255, 255), songNameFont);
 
 	// ==============================
 	// バナー描画
@@ -68,42 +93,42 @@ void ResultScene::Draw()
 	if (bannerHandle != -1)
 	{
 		DrawExtendGraph(
-			390, 120,
-			890, 370,
+			80, 120,
+			580, 370,
 			bannerHandle,
 			TRUE
 		);
 	}
 
 	// ==============================
+	// 最大コンボ
+	// ==============================
+	char buf[64];
+	sprintf_s(buf, "MaxCombo  %d", maxCombo);
+	DrawStringToHandle(80, 400, buf, GetColor(255, 255, 255), comboFont);
+
+	// ==============================
 	// 判定数描画
 	// ==============================
-	int y = 400;
-	int dy = 40;
-
-	char buf[64];
+	int baseX = 750;
+	int y = 150;
+	int dy = 50;
 
 	// パーフェクト
 	sprintf_s(buf, "Perfect   %d", perfectCount);
-	DrawString(100, y, buf, GetColor(255, 255, 0)); y += dy;
+	DrawStringToHandle(baseX, y, buf, judgeTextColor[(int)JudgeNum::PERFECT], judgeFont); y += dy;
 
 	// グレート
 	sprintf_s(buf, "Great     %d", greatCount);
-	DrawString(100, y, buf, GetColor(255, 80, 80)); y += dy;
+	DrawStringToHandle(baseX, y, buf, judgeTextColor[(int)JudgeNum::GREAT], judgeFont); y += dy;
 
 	// グッド
 	sprintf_s(buf, "Good      %d", goodCount);
-	DrawString(100, y, buf, GetColor(80, 255, 120)); y += dy;
+	DrawStringToHandle(baseX, y, buf, judgeTextColor[(int)JudgeNum::GOOD], judgeFont); y += dy;
 
 	// ミス
 	sprintf_s(buf, "Miss      %d", missCount);
-	DrawString(100, y, buf, GetColor(180, 180, 180)); y += dy;
-
-	// ==============================
-	// 最大コンボ
-	// ==============================
-	sprintf_s(buf, "MaxCombo  %d", maxCombo);
-	DrawString(100, y, buf, GetColor(255, 255, 255));
+	DrawStringToHandle(baseX, y, buf, judgeTextColor[(int)JudgeNum::MISS], judgeFont); y += dy;
 
 	// ==============================
 	// 戻る案内

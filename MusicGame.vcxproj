@@ -151,7 +151,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Animation.cpp" />
     <ClCompile Include="GameScene.cpp" />
     <ClCompile Include="JsonCreator.cpp" />
     <ClCompile Include="MusicPlayer.cpp" />
@@ -163,7 +162,6 @@
     <ClCompile Include="TitleScene.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Animation.h" />
     <ClInclude Include="GameScene.h" />
     <ClInclude Include="MusicPlayer.h" />
     <ClInclude Include="JsonCreator.h" />

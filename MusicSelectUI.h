@@ -54,7 +54,17 @@ public:
     void Update();
     void Draw();
 
+    // public セクションに追加
+    void ResetInputState();
+
     GameScene* createdScene = nullptr;
+
+    int selectSE = -1;      // 選曲変更音
+    int bgmHandle = -1;     // 選曲画面BGM
+
+    bool prevEnter = false;
+    bool prevSpace = false;
+    bool sceneStarted = false;
 
 private:
     void DrawBoxEx(int x, int y, int w, int h, int r, int g, int b, int a);
@@ -97,8 +107,6 @@ private:
 
     float scrollOffset = 0.0f;
     const int longPressValue;
-
-    int selectSE = -1;      // 選曲変更音
 
     int titleScroll = 0;
     int titleScrollTimer = 0;

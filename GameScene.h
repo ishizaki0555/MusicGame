@@ -16,17 +16,30 @@
 #include <DxLib.h>
 #include "Notes.h"
 
+// ゲームプレイ中のシーン
 class GameScene
 {
 public:
+
+    // @brief コンストラクタ
+    // @param ntoes ノーツデータ
+    // @param banner バナー画像
     GameScene(const NotesData& notes, int banner);   // ノーツデータとバナーを受け取って初期化
 
-    void Update();                                   // 毎フレームの更新処理
-    void Draw();                                     // 毎フレームの描画処理
+    // @brief 更新します
+    void Update();
 
-    void DrawCombo();                                // コンボ表示
-    void DrawScore();                                // スコア表示
-    void DrawSongInfo();                             // 曲名表示
+    // @brief 描画します
+    void Draw();
+
+    // @brief コンボ数を描画します
+    void DrawCombo();
+
+    // @brief スコアを描画します
+    void DrawScore();
+
+    // @brief 曲情報を描画します
+    void DrawSongInfo();
 
     int GetScore() const { return score; }           // スコア取得
     int GetMaxCombo() const { return combo; }        // 最大コンボ取得
@@ -84,17 +97,19 @@ private:
     const float LANE_THICKNESS = 10.0f;              // レーンの厚み
     const float NOTE_THICKNESS = 5.0f;               // ノーツの厚み
     const float LANE_BASE_Y = 0;                     // レーンのY座標
-    const float JUDGE_LINE_Z = 0.0f;              // 判定ラインのZ座標
+    const float JUDGE_LINE_Z = 0.0f;                 // 判定ラインのZ座標
     const float FLASH_LINE_Z = 2700.0f;              // レーン発光の奥行き
 
     int musicHandle = -1;                            // 楽曲ハンドル
 
+    // テクスチャハンドル
     const int LANE_TEX;                              // レーンテクスチャ
     const int LIGHT_TEX;                             // ライとテクスチャ
     const int LINE_TEX;                              // 判定ラインテクスチャ
     const int NOTE_TEX;                              // ノーツテクスチャ
     const int LONG_NOTE_TEX;                         // ロングノーツテクスチャ
 
+    // 判定範囲(ミリ秒)
     const float PERFECT_RANGE = 0.10f;                // PERFECT 判定範囲
     const float GREAT_RANGE = 0.12f;                  // GREAT 判定範囲
     const float GOOD_RANGE = 0.13f;                   // GOOD 判定範囲
@@ -116,6 +131,7 @@ private:
     bool keyDown[4];
     bool keyUp[4];
 
+    // 各判定カウント
     int perfectCount = 0;                            // Perfect 数
     int greatCount = 0;                              // Great 数
     int goodCount = 0;                               // Good 数
@@ -138,6 +154,8 @@ private:
     const int JUDGE_BASE_Y = 300;                    // 判定のテキストのY固定座標
 
     int bannerHandle = -1;                           // バナー画像ハンドル
+    int fontMusicName = -1;                          // 曲名表示用フォントハンドル
+    int judgeFont = -1;                              // 判定テキスト表示用フォントハンドル
 
     // カウントダウン関連
     int countDown = 180;                             // 開始前カウントダウン（3秒）

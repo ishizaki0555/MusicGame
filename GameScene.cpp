@@ -27,7 +27,8 @@ GameScene::GameScene(const NotesData& notesData, int banner)
     songName = notesData.title;              // 曲名を保存
     bannerHandle = banner;                   // バナーハンドルを保存
 
-    musicHandle = LoadSoundMem(notesData.musicPath.c_str()); // 楽曲読み込み
+    // 楽曲読み込み
+    musicHandle = LoadSoundMem(notesData.musicPath.c_str());
 
     // 効果音の読み込み
     hitSE = LoadSoundMem("Sounds/hit.mp3");
@@ -391,6 +392,25 @@ void GameScene::Draw()
         );
     }
 
+    // ============================
+    // レーン区切りライン描画
+    // ============================
+    for (int i = 0; i <= 4; i++)
+    {
+        float x = (i * laneWidth) - (laneWidth * 2);
+
+        // ラインの太さ（細い板）
+        float lineThickness = 2.0f;
+
+        DrawQuad3D(
+            VGet(x - lineThickness / 2, LANE_BASE_Y, LANE_FRONT),
+            VGet(x + lineThickness / 2, LANE_BASE_Y, LANE_FRONT),
+            VGet(x + lineThickness / 2, LANE_BASE_Y, LANE_DEPTH),
+            VGet(x - lineThickness / 2, LANE_BASE_Y, LANE_DEPTH),
+            LINE_TEX   // 既存のラインテクスチャを使用
+        );
+    }
+
     // 判定ライン
     DrawQuad3D(
         VGet(-200, LANE_BASE_Y, JUDGE_LINE_Z),
@@ -399,6 +419,29 @@ void GameScene::Draw()
         VGet(-200, LANE_BASE_Y + 5, JUDGE_LINE_Z),
         LINE_TEX
     );
+
+    // ============================
+    // キーガイド描画
+    // ============================
+    const char* keyNames[4] = { "S", "D", "J", "K" };
+
+    // レーンより広い間隔で配置したい場合
+    float guideSpacing = laneWidth * 1.5f;
+    float startX = -guideSpacing * 1.5f;     // 左端の開始位置
+
+    for (int i = 0; i < 4; i++)
+    {
+        float x = startX + guideSpacing * i;
+        VECTOR screenPos = ConvWorldPosToScreenPos(VGet(x, 0, JUDGE_LINE_Z + 100));
+
+        // 画面下部にキーガイドを描画
+        DrawString(
+            (int)screenPos.x - 10,
+            670,
+            keyNames[i],
+            GetColor(255, 255, 255)
+        );
+    }
 
     // カウントダウン表示
     DrawCountDown();
@@ -518,7 +561,11 @@ void GameScene::DrawScore()
 void GameScene::DrawSongInfo()
 {
     std::string sjis = Utf8ToSjis(songName);
-    DrawString(30, 60, sjis.c_str(), GetColor(200, 200, 200)); // 曲名表示
+    // バナー描画
+    DrawExtendGraph(20, 40, 320, 200, GetBannerHandle(), TRUE);
+
+    // 曲名表示
+    DrawString(30, 230, sjis.c_str(), GetColor(200, 200, 200));
 }
 
 std::string GameScene::Utf8ToSjis(const std::string& utf8)

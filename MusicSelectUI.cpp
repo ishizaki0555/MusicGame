@@ -9,7 +9,11 @@ MusicSelectUI::MusicSelectUI(const fs::path& folder)
     : folderPath(folder)
     , longPressValue(50)
 {
+    // 交換音の取得
     selectSE = LoadSoundMem("Sounds/select.mp3");
+
+    // リザルト画面のBGMを取得
+    bgmHandle = LoadSoundMem("Sounds/select.wav");
 }
 
 MusicSelectUI::~MusicSelectUI()
@@ -205,6 +209,15 @@ void MusicSelectUI::Update()
     const int WAIT_TIME = 120;      // 約2秒（60FPS想定）
     const int SCROLL_SPEED = 1;     // スクロール速度
 
+    if (!sceneStarted)
+    {
+        sceneStarted = true;
+        PlaySoundMem(bgmHandle, DX_PLAYTYPE_LOOP);
+
+        prevEnter = (CheckHitKey(KEY_INPUT_RETURN) != 0);
+        prevSpace = (CheckHitKey(KEY_INPUT_SPACE) != 0);
+    }
+
     switch (scrollState)
     {
     case ScrollState::WaitStart:
@@ -339,34 +352,25 @@ void MusicSelectUI::Update()
 
     selectedDifficulty = (Difficulty)diffIndex;
 
-    // 曲の決定
-    static int enterTimer = 0;
-    static int spaceTimer = 0;
+    // 決定キーの現在状態
+    bool nowEnter = (CheckHitKey(KEY_INPUT_RETURN) != 0);
+    bool nowSpace = (CheckHitKey(KEY_INPUT_SPACE) != 0);
 
-    int enter = CheckHitKey(KEY_INPUT_RETURN);
-    int space = CheckHitKey(KEY_INPUT_SPACE);
+    // 押した瞬間だけ true になる
+    bool enterDown = (nowEnter && !prevEnter);
+    bool spaceDown = (nowSpace && !prevSpace);
 
-    bool decide = false;
+    // 次フレームのために保存
+    prevEnter = nowEnter;
+    prevSpace = nowSpace;
 
-    // Enterキーの入力の検知
-    if (enter)
-    {
-        if (enterTimer == 0) decide = true;
-        enterTimer++;
-    }
-    else enterTimer = 0;
-
-    // Spaceキーの入力の検知
-    if (space)
-    {
-        if (spaceTimer == 0) decide = true;
-        spaceTimer++;
-    }
-    else spaceTimer = 0;
+    bool decide = (enterDown || spaceDown);
 
     //選曲の決定処理
     if (decide)
     {
+        StopSoundMem(bgmHandle);
+
         if (!musicList.empty())
         {
             auto& info = musicList[selectedIndex];
@@ -560,4 +564,10 @@ void MusicSelectUI::Draw()
 
     DrawBoxEx(mainX, playY, playW, playH, 80, 150, 255, 255);
     DrawTextEx("PLAY", mainX + 60, playY + 20, GetColor(0, 0, 0), fontHandleSmall);
+}
+
+void MusicSelectUI::ResetInputState()
+{
+    prevEnter = (CheckHitKey(KEY_INPUT_RETURN) != 0);
+    prevSpace = (CheckHitKey(KEY_INPUT_SPACE) != 0);
 }
