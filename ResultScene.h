@@ -16,10 +16,10 @@
 // 判定の種類
 enum class JudgeNum
 {
-	PERFECT = 0,
-	GREAT,
-	GOOD,
-	MISS
+	PERFECT = 0,	// パーフェクト
+	GREAT,			// グレート
+	GOOD,			// グッド
+	MISS			// ミス
 };
 
 class ResultScene
@@ -72,8 +72,8 @@ private:
 	// 判定の文字色
 	unsigned int judgeTextColor[4] = { GetColor(255, 255, 0) , GetColor(255, 80, 80) , GetColor(80, 255, 120) , GetColor(180, 180, 180) };
 
-	int judgeFont = -1;
-	int scoreFont = -1;
-	int songNameFont = -1;
-	int comboFont = -1;
+	int judgeFont = -1;			// 判定テキスト表示用フォントハンドル
+	int scoreFont = -1;			// スコア表示用フォントハンドル
+	int songNameFont = -1;		// 曲名表示用フォントハンドル
+	int comboFont = -1;			// コンボ表示用フォントハンドル
 };

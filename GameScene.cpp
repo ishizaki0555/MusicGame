@@ -41,10 +41,13 @@ GameScene::GameScene(const NotesData& notesData, int banner)
     // longBodies 生成箇所
     for (int i = 0; i < notes.size(); i++)
     {
+        // ロングノーツの開始ノーツを見つける
         if (notes[i].type == 2) // start
         {
+            // 同じレーンでType3のノーツを探す
             for (int j = i + 1; j < notes.size(); j++)
             {
+                // 譜面によってはロングノーツの終点が同じレーンでない場合もあるため、レーンもチェックする
                 if (notes[j].type == 3 && notes[j].lane == notes[i].lane)
                 {
                     LongBody body;
@@ -71,14 +74,20 @@ GameScene::GameScene(const NotesData& notesData, int banner)
 // @return 判定結果（0=PERFECT,1=GREAT,2=GOOD,3=MISS）
 int GameScene::Judge(int diffMs)
 {
+    // 差の絶対値を撮る
     diffMs = abs(diffMs);
 
+    // 判定範囲に応じて結果を返す
     if (diffMs <= PERFECT_RANGE) return 0;   // PERFECT 判定
     if (diffMs <= GREAT_RANGE)   return 1;   // GREAT 判定
     if (diffMs <= GOOD_RANGE)    return 2;   // GOOD 判定
     return 3;                                // MISS 判定
 }
 
+// @brief 判定文字の追加
+// @param lane レーン
+// @param judgeType 判定の種類（0=PERFECT,1=GREAT,2=GOOD,3=MISS）
+// @param noteIndex 判定したノーツのインデックス
 void GameScene::AddJudgeText(int lane, int result, int noteIndex)
 {
     JudgeTextInfo jt;
@@ -106,9 +115,7 @@ void GameScene::AddJudgeText(int lane, int result, int noteIndex)
 	judgeTexts.push_back(jt);
 }
 
-/// <summary>
-/// 毎フレーム更新処理
-/// </summary>
+// @brief 更新します
 void GameScene::Update()
 {
     // ============================
@@ -276,6 +283,7 @@ void GameScene::Update()
     }
 }
 
+// @brief カウントダウン描画
 void GameScene::DrawCountDown()
 {
     if (started) return;   // 開始後は表示しない
@@ -288,6 +296,7 @@ void GameScene::DrawCountDown()
     DrawString(600, 300, buf, GetColor(255, 255, 255)); // カウントダウン表示
 }
 
+// @brief レーン発光描画
 void GameScene::DrawLaneFlash3D()
 {
     for (int i = 0; i < 4; i++)   // 各レーンの発光を描画
@@ -327,6 +336,7 @@ void GameScene::DrawLaneFlash3D()
     }
 }
 
+// @brief 判定文字描画
 void GameScene::DrawJudgeText()
 {
     for (auto& jt : judgeTexts)
@@ -369,6 +379,7 @@ void GameScene::DrawJudgeText()
     );
 }
 
+// @brief 描画します
 void GameScene::Draw()
 {
     DrawBox(0, 0, 1280, 720, GetColor(20, 20, 20), TRUE); // 背景
@@ -446,12 +457,23 @@ void GameScene::Draw()
     // カウントダウン表示
     DrawCountDown();
 
+    // レーン発光
+    DrawLaneFlash3D();
+
+    // 判定文字
+    DrawJudgeText();
+
+    // UI
+    DrawScore();
+    DrawCombo();
+    DrawSongInfo();
+
     if (!started) return; // 開始前はノーツを描画しない
 
-    // Draw() 内、currentTime を取得した直後に longBodies を先に描画するブロックを追加
+    // currentTime を取得した直後に longBodies を先に描画するブロックを追加
     double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0;
 
-    // LongBody（帯）を先に描画（longBodies はコンストラクタで生成済み）
+    // LongBody（帯）を先に描画
     for (auto& b : longBodies)
     {
         float dtStart = b.startTime - currentTime;
@@ -483,21 +505,27 @@ void GameScene::Draw()
     // 既存のノーツ描画（判定用 notes をそのまま描画）
     for (int i = 0; i < notes.size(); i++)
     {
+        // ノーツが判定されていたら描画しない
         if (noteConsumed[i]) continue;
 
+        // ノーツの情報を取得
         JudgeNote& n = notes[i];
 
         // 通常ノーツ & ロング開始ノーツ（始点）
         if (n.type == 1 || n.type == 2)
         {
+            // ノーツの位置を計算
             float dt = n.time - currentTime;
             float z = dt * scrollSpeed;
 
+            // 画面外チェック（ノーツが画面外なら描画しない）
             if (z < LANE_FRONT || z > LANE_DEPTH) continue;
 
+            // レーンの中央の位置を計算
             float xCenter = -2 * laneWidth + laneWidth * n.lane + laneWidth / 2;
             float halfWidth = laneWidth / 3;
 
+            // ノーツの描画
             DrawQuad3D(
                 VGet(xCenter - halfWidth, 0.1f, z),
                 VGet(xCenter + halfWidth, 0.1f, z),
@@ -527,19 +555,9 @@ void GameScene::Draw()
             );
         }
     }
-
-    // レーン発光
-    DrawLaneFlash3D();
-
-    // 判定文字
-    DrawJudgeText();
-
-    // UI
-    DrawScore();
-    DrawCombo();
-    DrawSongInfo();
 }
 
+// @brief コンボ数を描画します
 void GameScene::DrawCombo()
 {
     if (combo <= 0) return; // コンボが0なら表示しない
@@ -550,6 +568,7 @@ void GameScene::DrawCombo()
     DrawString(1100, 300, buf, GetColor(255, 255, 255)); // コンボ表示
 }
 
+// @brief スコアを描画します
 void GameScene::DrawScore()
 {
     char buf[32];
@@ -558,6 +577,7 @@ void GameScene::DrawScore()
     DrawString(30, 20, buf, GetColor(255, 255, 255)); // スコア表示
 }
 
+// @brief 曲情報を描画します
 void GameScene::DrawSongInfo()
 {
     std::string sjis = Utf8ToSjis(songName);
@@ -583,6 +603,11 @@ std::string GameScene::Utf8ToSjis(const std::string& utf8)
     return sjis;
 }
 
+// @brief 3D四角形描画
+// @param p1 頂点１
+// @param p2 頂点２
+// @param p3 頂点３
+// @param p4 頂点４
 void GameScene::DrawQuad3D(
     const VECTOR& p1,
     const VECTOR& p2,

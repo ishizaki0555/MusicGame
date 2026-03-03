@@ -66,11 +66,13 @@ nlohmann::json JsonLoader::Load(const std::filesystem::path& path)
     // Jsonをバースして返す
     try
     {
+        // バッファからJSONをバースして返す
         return nlohmann::json::parse(buffer);
     }
 	// パースエラーが発生した場合はエラーメッセージを表示して空のJsonを返す
     catch (const std::exception& e)
     {
+        // エラーメッセージｗ表示
         std::cout << "JSON パースエラー: " << e.what() << std::endl;
         return nlohmann::json();
     }

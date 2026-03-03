@@ -65,15 +65,16 @@ public:
 		float endTime;          // 終了時間
     };
 
+    // 判定文字の描画用データ
     struct JudgeTextInfo
     {
-        float x;
-        float y;
-        float z;
-        int alpha;
-        int timer;
-        int hold;
-        int judgeType; // 0=PERFECT,1=GREAT,2=GOOD,3=MISS
+        float x;        // X座標
+        float y;        // Y座標
+        float z;        // Z座標
+        int alpha;      // 透明度
+        int timer;      // 表示時間
+		int hold;	    // 静止時間
+        int judgeType;  // 判定の種類
     };
 
     std::vector<JudgeTextInfo> judgeTexts;
@@ -164,17 +165,35 @@ private:
     // レーン発光
     int laneFlash[4] = { 0, 0, 0, 0 };               // レーン発光タイマー
 
-    int Judge(int diffMs);                              // 判定ロジック
-	void AddJudgeText(int lane, int judgeType, int noteIndex);    // 判定データをセットして、判定文字表示の準備をする
-    void DrawJudgeText();                                   // 判定文字描画
-    void DrawLaneFlash3D();                                 // レーン発光描画
-    void DrawCountDown();                                   // カウントダウン描画
+    // @brief 判定ロジック
+    // @param diffMs 判定ラインとの差(ミリ秒)
+    int Judge(int diffMs);
 
-    void DrawQuad3D(                                        // 3D四角形描画
-        const VECTOR& p1,
-        const VECTOR& p2,
-        const VECTOR& p3,
-        const VECTOR& p4,
+    // @brief 判定文字の追加
+    // @param lane レーン
+	// @param judgeType 判定の種類（0=PERFECT,1=GREAT,2=GOOD,3=MISS）
+    // @param noteIndex 判定したノーツのインデックス
+	void AddJudgeText(int lane, int judgeType, int noteIndex);
+    
+    // @brief 判定文字描画
+    void DrawJudgeText();
+
+    // @brief レーン発光描画
+    void DrawLaneFlash3D();
+
+    // @brief カウントダウン描画
+    void DrawCountDown();
+
+    // @brief 3D四角形描画
+    // @param p1 頂点１
+	// @param p2 頂点２
+	// @param p3 頂点３
+	// @param p4 頂点４
+    void DrawQuad3D(
+        const VECTOR& p1,   // 頂点１
+        const VECTOR& p2,   // 頂点２
+        const VECTOR& p3,   // 頂点３
+        const VECTOR& p4,   // 頂点４
         int tex
     );
 };

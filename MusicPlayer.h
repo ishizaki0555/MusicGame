@@ -13,6 +13,7 @@
 #include <string>
 #include <DxLib.h>
 
+// ‰¹Œ¹ŠÇ—ƒNƒ‰ƒX
 class MusicPlayer
 {
 public:
