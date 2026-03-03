@@ -30,6 +30,9 @@ SceneType currentScene = SceneType::TITLE_SCENE;   // 現在のシーン
 // エントリーポイント
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
+    // ウィンドウの名前を設定
+    SetMainWindowText("MusicGame");
+
     // DXLib 初期設定
     SetGraphMode(1280, 720, 32, 60);     // 画面サイズ設定
     ChangeWindowMode(TRUE);              // ウィンドウモード

@@ -73,8 +73,6 @@ private:
 
     void DrawTextLeftClip(const std::string& text, int leftX, int y, int barWidth, int color, int font);
     void DrawTextLeftSlide(const std::string& text, int leftX, int y, int barWidth, int color, int font);
-
-    void DrawBanner(const MusicInfo& info);
     static void GetDifficultyColor(Difficulty diff, int& r, int& g, int& b);
 
 private:

@@ -94,14 +94,17 @@ void MusicSelectUI::DrawBoxEx(int x, int y, int w, int h, int r, int g, int b, i
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }
 
+// @brief UTF-8の文字列をShift-JISに変換します
+// @param utf8 UTF-8でエンコードされた文字列
+// @return Shift-8でエンコードされた文字列
 std::string Utf8ToSjis(const std::string& utf8)
 {
-    // UTF-8 → UTF-16
+    // UTF-8をUTF-16に変換する
     int wlen = MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, nullptr, 0);
     std::wstring wstr(wlen, 0);
     MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, &wstr[0], wlen);
 
-    // UTF-16 → Shift-JIS
+    // UTF-16をShift-JISに変換する
     int len = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
     std::string sjis(len, 0);
     WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, &sjis[0], len, nullptr, nullptr);
