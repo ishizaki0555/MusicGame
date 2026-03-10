@@ -1,29 +1,29 @@
-// ========================================
+ï»¿// ========================================
 // 
 // MusicGame Project
 // 
 // ========================================
 // 
 // TitleScene.cpp
-// ƒ^ƒCƒgƒ‹‰æ–Ê‚Ì‹@”\‚ğ’ñ‹Ÿ‚µ‚Ü‚·B
+// ã‚¿ã‚¤ãƒˆãƒ«ç”»é¢ã®æ©Ÿèƒ½ã‚’æä¾›ã—ã¾ã™ã€‚
 // 
 //========================================
 
 #include "TitleScene.h"
 #include <cmath>
 
-// @brief ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+// @brief ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 TitleScene::TitleScene()
 {
-    // 3Dİ’è
+    // 3Dè¨­å®š
     SetUseZBuffer3D(TRUE);
     SetWriteZBuffer3D(TRUE);
 
-    // BGM “Ç‚İ‚İ
+    // BGM èª­ã¿è¾¼ã¿
     bgm = LoadSoundMem("BGM/Title.mp3");
     PlaySoundMem(bgm, DX_PLAYTYPE_LOOP);
 
-    // —±q‰Šú‰»
+    // ç²’å­åˆæœŸåŒ–
     for (int i = 0; i < PARTICLE_MAX; i++)
     {
         particles[i].x = rand() % 1280;
@@ -32,55 +32,127 @@ TitleScene::TitleScene()
     }
 }
 
-// @brief ƒfƒXƒgƒ‰ƒNƒ^
+// @brief ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 TitleScene::~TitleScene(){}
 
-// @brief XV‚µ‚Ü‚·
+// @brief æ›´æ–°ã—ã¾ã™
 void TitleScene::Update()
 {
-    // ENTER ‚ÅŸ‚ÌƒV[ƒ“‚Ö
-    if (CheckHitKey(KEY_INPUT_RETURN) || CheckHitKey(KEY_INPUT_SPACE))
+    static int upTimer = 0;
+    static int downTimer = 0;
+
+    const int REPEAT_START = 120;       // é•·æŠ¼ã—é–‹å§‹ã¾ã§ã®å¾…ã¡æ™‚é–“
+    const int REPEAT_INTERVAL = 25;      // é•·æŠ¼ã—æ™‚ã®ç¹°ã‚Šè¿”ã—é–“éš”
+
+    int up = CheckHitKey(KEY_INPUT_UP) || CheckHitKey(KEY_INPUT_W);
+    int down = CheckHitKey(KEY_INPUT_DOWN) || CheckHitKey(KEY_INPUT_S);
+
+    // ä¸Šç§»å‹•
+    if (up)
     {
-        goNext = true;
+        if (upTimer == 0 || (upTimer > REPEAT_START && upTimer % REPEAT_INTERVAL == 0))
+        {
+            menuIndex = (menuIndex + 2) % 3;  // ä¸Šã¸
+        }
+        upTimer++;
+    }
+    else
+    {
+        upTimer = 0;
     }
 
-    // —±qXV
+    // ä¸‹ç§»å‹•
+    if (down)
+    {
+        if (downTimer == 0 || (downTimer > REPEAT_START && downTimer % REPEAT_INTERVAL == 0))
+        {
+            menuIndex = (menuIndex + 1) % 3;  // ä¸‹ã¸
+        }
+        downTimer++;
+    }
+    else
+    {
+        downTimer = 0;
+    }
+
+    // æ±ºå®š
+    if (CheckHitKey(KEY_INPUT_RETURN) || CheckHitKey(KEY_INPUT_SPACE))
+    {
+        if (menuIndex == 0)
+        {
+            goNext = true; // Start
+        }
+        else if (menuIndex == 1)
+        {
+            // Settingï¼ˆå¾Œã§è¿½åŠ ï¼‰
+        }
+        else if (menuIndex == 2)
+        {
+            DxLib_End();
+            exit(0);
+        }
+    }
+
+    // ãƒ‘ãƒ¼ãƒ†ã‚£ã‚¯ãƒ«æ›´æ–°ï¼ˆæ—¢å­˜ï¼‰
     for (int i = 0; i < PARTICLE_MAX; i++)
     {
-        // YÀ•W‚ğ‘¬“x•ª‚¾‚¯‘‰Á‚³‚¹‚é
         particles[i].y += particles[i].speed;
         if (particles[i].y > 720)
         {
-            // ‰æ–Ê‰º‚Éo‚½‚çã‚É–ß‚·
             particles[i].y = 0;
             particles[i].x = rand() % 1280;
         }
     }
 }
 
-// @brief •`‰æ‚µ‚Ü‚·
+// @brief æç”»ã—ã¾ã™
 void TitleScene::Draw()
 {
     ClearDrawScreen();
 
     // ============================
-    // ƒJƒƒ‰‚ğ”hè‚É“®‚©‚·
+    // ãƒ¡ãƒ‹ãƒ¥ãƒ¼æç”»ï¼ˆãƒãƒ¼ã‚«ãƒ¼ä»˜ãï¼‰
+    // ============================
+    const char* items[3] = { "START", "SETTING", "EXIT" };
+
+    for (int i = 0; i < 3; i++)
+    {
+        int y = 350 + i * 60;
+
+        // é¸æŠä¸­ã¯é»„è‰²ã€ãã‚Œä»¥å¤–ã¯ç™½
+        int color = (i == menuIndex)
+            ? GetColor(255, 255, 0)
+            : GetColor(255, 255, 255);
+
+        // ãƒãƒ¼ã‚«ãƒ¼ã‚’æç”»
+        if (i == menuIndex)
+        {
+            DrawString(540, y, "â—", color);
+        }
+
+        // ãƒ¡ãƒ‹ãƒ¥ãƒ¼é …ç›®
+        DrawString(580, y, items[i], color);
+    }
+
+
+    // ============================
+    // ã‚«ãƒ¡ãƒ©ã‚’æ´¾æ‰‹ã«å‹•ã‹ã™
     // ============================
     float t = GetNowCount() * 0.002f;
 
-    // ƒJƒƒ‰‚ğ‰~‹O“¹‚Å“®‚©‚·
+    // ã‚«ãƒ¡ãƒ©ã‚’å††è»Œé“ã§å‹•ã‹ã™
     float camX = 40.0f * cosf(t);
     float camZ = 40.0f * sinf(t);
     float camY = 20.0f + 5.0f * sinf(t * 2);
 
-    // ƒJƒƒ‰ˆÊ’u‚Æ’‹“_‚ğİ’è
+    // ã‚«ãƒ¡ãƒ©ä½ç½®ã¨æ³¨è¦–ç‚¹ã‚’è¨­å®š
     SetCameraPositionAndTarget_UpVecY(
         VGet(camX, camY, camZ),
         VGet(0.0f, 10.0f, 0.0f)
     );
 
     // ============================
-    // ƒLƒ‰ƒLƒ‰—±q
+    // ã‚­ãƒ©ã‚­ãƒ©ç²’å­
     // ============================
     for (int i = 0; i < PARTICLE_MAX; i++)
     {
@@ -88,11 +160,11 @@ void TitleScene::Draw()
     }
 
     // ============================
-    // ƒ^ƒCƒgƒ‹ƒƒSiŠg‘åk¬j
+    // ã‚¿ã‚¤ãƒˆãƒ«ãƒ­ã‚´ï¼ˆæ‹¡å¤§ç¸®å°ï¼‰
     // ============================
     float scale = 1.0f + 0.05f * sinf(GetNowCount() * 0.005f);
 
-    // ƒ^ƒCƒgƒ‹ƒeƒLƒXƒg‚Ì•‚ğæ“¾‚µ‚Ä’†‰›‚É”z’u
+    // ã‚¿ã‚¤ãƒˆãƒ«ãƒ†ã‚­ã‚¹ãƒˆã®å¹…ã‚’å–å¾—ã—ã¦ä¸­å¤®ã«é…ç½®
     const char* title = "MUSIC GAME!!";
     int w = GetDrawStringWidth(title, strlen(title));
     int x = 640 - (int)(w * scale / 2);
@@ -101,7 +173,7 @@ void TitleScene::Draw()
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     // ============================
-    // PRESS ENTERi“_–Åj
+    // PRESS ENTERï¼ˆç‚¹æ»…ï¼‰
     // ============================
     int alpha = 128 + 127 * sinf(GetNowCount() * 0.01f);
 

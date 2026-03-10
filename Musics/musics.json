@@ -2,6 +2,10 @@
     "musics": [
         {
             "file": "music.wav",
+            "folder": "12345"
+        },
+        {
+            "file": "music.wav",
             "folder": "HUNDRED DUOVIGINTILLION ARROWS"
         },
         {

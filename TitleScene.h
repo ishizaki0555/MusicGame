@@ -36,6 +36,7 @@ private:
 
     // パーティクル関連
     static const int PARTICLE_MAX = 60;     // パーティクルの最大数
+    int menuIndex = 0;                      // メニューの選択インデックス
     
     // パーティクルの構造体
     struct Particle {
