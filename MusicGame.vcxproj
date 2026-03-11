@@ -169,6 +169,7 @@
     <ClInclude Include="MusicSelectUI.h" />
     <ClInclude Include="Notes.h" />
     <ClInclude Include="ResultScene.h" />
+    <ClInclude Include="SettingScene.h" />
     <ClInclude Include="TitleScene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

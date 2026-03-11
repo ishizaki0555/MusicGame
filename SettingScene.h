@@ -1,0 +1,39 @@
+// ========================================
+// 
+// MusicGame Project
+// 
+// ========================================
+// 
+// SettingScene.h
+// 設定画面の機能を提供します
+// 
+// ========================================
+
+#pragma once
+#include <DxLib.h>
+#include <vector>
+
+// 設定画面のクラス
+class SettingScene
+{
+public:
+
+	// @brief コンストラクタ
+	SettingScene();
+
+	// @brief デストラクタ
+	~SettingScene();
+
+	// @brief 更新します
+	void Update();
+
+	// @brief 描画します
+	void Draw();
+
+private:
+	struct TestNote
+	{
+		float time;
+		int lane;
+	};
+};
