@@ -11,6 +11,7 @@
 //========================================
 
 #include <DxLib.h>
+#include <imgui.h>
 #include "MusicSelectUI.h"
 #include "TitleScene.h"
 #include "GameScene.h"
