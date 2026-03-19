@@ -44,6 +44,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     if (DxLib_Init() == -1) return -1;   // DXLib 初期化
     SetDrawScreen(DX_SCREEN_BACK);       // 裏画面に描画
 
+    // ImGuiの初期化
+
+
     // タイトルシーン生成
     TitleScene* title = new TitleScene();
     // 選曲UI生成
