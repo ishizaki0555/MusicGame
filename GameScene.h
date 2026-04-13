@@ -1,4 +1,4 @@
-﻿// ========================================
+// ========================================
 // 
 // MusicGame Project
 // 
@@ -63,6 +63,8 @@ public:
 		int lane;               // レーン
 		float startTime;        // 開始時間
 		float endTime;          // 終了時間
+        float startBeat;        // 開始拍数
+        float endBeat;          // 終了拍数
     };
 
     // 判定文字の描画用データ
@@ -85,6 +87,7 @@ public:
     bool IsFinished() const { return finished; }     // 終了判定
 
 private:
+    NotesData m_notesData;                           // ノーツデータ全体
     std::vector<JudgeNote> notes;                    // ノーツ一覧
 	std::vector<LongBody> longBodies;                // ロングノーツの描画用データ
 	std::vector<int> noteConsumed;				     // ノーツ消費フラグ
@@ -116,9 +119,9 @@ private:
     const float GOOD_RANGE = 0.13f;                   // GOOD 判定範囲
 
     // 判定関連
-    int nextNoteIndex[4] = { 0, 0, 0, 0 };              // 各レーンの次に判定するノーツ
-    bool holding[4] = { false, false, false, false };   // ロングノーツを押しているかどうか
-    int holdingNoteIndex[4] = { -1, -1, -1, -1 };       // どのノーツをホールド中か
+    int nextNoteIndex[6] = { 0, 0, 0, 0, 0, 0 };              // 各レーンの次に判定するノーツ
+    bool holding[6] = { false, false, false, false, false, false };   // ロングノーツを押しているかどうか
+    int holdingNoteIndex[6] = { -1, -1, -1, -1, -1, -1 };       // どのノーツをホールド中か
     int judgeDisplayTimer = 0;                          // 判定文字の表示タイマー
     int lastJudge = -1;                                 // 最後の判定結果
 
@@ -127,10 +130,10 @@ private:
 	int rongSE = -1;    							    // ロングノーツヒット音      
 
     // キー設定
-    bool prevKey[4] = {false, false , false, false};
-    bool nowKey[4];
-    bool keyDown[4];
-    bool keyUp[4];
+    bool prevKey[6] = {false, false, false, false, false, false};
+    bool nowKey[6];
+    bool keyDown[6];
+    bool keyUp[6];
 
     // 各判定カウント
     int perfectCount = 0;                            // Perfect 数
@@ -163,7 +166,7 @@ private:
     int started = false;                             // 開始フラグ
 
     // レーン発光
-    int laneFlash[4] = { 0, 0, 0, 0 };               // レーン発光タイマー
+    int laneFlash[6] = { 0, 0, 0, 0, 0, 0 };               // レーン発光タイマー
 
     // @brief 判定ロジック
     // @param diffMs 判定ラインとの差(ミリ秒)

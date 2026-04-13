@@ -5,98 +5,209 @@
 // ========================================
 // 
 // Notes.cpp
-// ƒm[ƒcƒf[ƒ^‚Ì\‘¢‘Ì‚ÆAJSON‚©‚çƒm[ƒcƒf[ƒ^‚ğ“Ç‚İ‚Ş‹@”\‚ğ’ñ‹Ÿ‚µ‚Ü‚·B
+// ãƒãƒ¼ãƒ„ãƒ‡ãƒ¼ã‚¿ã®æ§‹é€ ä½“ã¨ã€JSONã‹ã‚‰ãƒãƒ¼ãƒ„ãƒ‡ãƒ¼ã‚¿ã‚’èª­ã¿è¾¼ã‚€æ©Ÿèƒ½ã‚’æä¾›ã—ã¾ã™ã€‚
 // 
 //========================================
 
 #include "Notes.h"
 #include <filesystem>
 
-// @brief JSON‚©‚çƒm[ƒcƒf[ƒ^‚ğ“Ç‚İ‚Ş
-// @param json JSONƒIƒuƒWƒFƒNƒg
+// @brief JSONã‹ã‚‰ãƒãƒ¼ãƒ„ãƒ‡ãƒ¼ã‚¿ã‚’èª­ã¿è¾¼ã‚€
+// @param json JSONã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
 void NotesData::LoadFromJson(const nlohmann::json& json)
 {
-    // JSON‚©‚çŠî–{î•ñ‚ğ“Ç‚İ‚Ş
+    // JSONã‹ã‚‰åŸºæœ¬æƒ…å ±ã‚’èª­ã¿è¾¼ã‚€
     judgeNotes.clear();
+    bpmChanges.clear();
     title = json.value("name", "Unknown");
     bpm = json.value("BPM", 0);
     offset = json.value("offset", 0);
+    maxLPB = json.value("maxLPB", 24);
 
-    // •ˆ–Ê‚Ìnum‚ÆLPB‚©‚çŠÔ‚ğŒvZ‚·‚é
-    auto calcTime = [&](int num, int LPB)
-        {
-            // BPM‚ÆLPB‚©‚ç‚P”‘‚ ‚½‚è‚Ì•b”‚ğŒvZ
-            float secPerBeat = 60.0f / bpm;
-            return (secPerBeat * (float)num / LPB) + offset * 0.01f;
-        };
+    // BPMå¤‰æ›´ãƒªã‚¹ãƒˆã®èª­ã¿è¾¼ã¿ã¨æ™‚é–“ãƒ»æ‹æ•°ã®è¨ˆç®—
+    if (json.contains("bpmChanges")) {
+        float currentBeat = 0.0f;
+        float currentTime = offset * 0.01f;
+        float currentBpm = bpm;
 
-    // ‚Ü‚¸Œ´ƒf[ƒ^‚Ì block ”ÍˆÍ‚ğ’²‚×‚Ä³‹K‰»•ûj‚ğŒˆ‚ß‚é
+        // ã¾ãšå…¨ã¦èª­ã¿è¾¼ã‚€
+        for (auto& bc : json["bpmChanges"]) {
+            BpmChange b;
+            b.tick = bc.value("tick", 0);
+            b.bpm = bc.value("bpm", bpm);
+            b.beat = (float)b.tick / maxLPB;
+            bpmChanges.push_back(b);
+        }
+
+        // æ™‚é–“é †ã«ã‚½ãƒ¼ãƒˆã™ã‚‹ï¼ˆé€šå¸¸ã¯ã™ã§ã«ã‚½ãƒ¼ãƒˆã•ã‚Œã¦ã„ã‚‹ãŒå¿µã®ãŸã‚ï¼‰
+        std::sort(bpmChanges.begin(), bpmChanges.end(), [](auto& a, auto& b) { return a.tick < b.tick; });
+
+        // å„å¤‰æ›´ä½ç½®ã®çµ¶å¯¾æ™‚é–“ã‚’è¨ˆç®—
+        for (auto& bc : bpmChanges) {
+            float dBeat = bc.beat - currentBeat;
+            float secPerBeat = 60.0f / currentBpm;
+            currentTime += dBeat * secPerBeat;
+            
+            bc.time = currentTime;
+            
+            currentBeat = bc.beat;
+            currentBpm = bc.bpm;
+        }
+    }
+
+    // ã¾ãšåŸãƒ‡ãƒ¼ã‚¿ã® block ç¯„å›²ã‚’èª¿ã¹ã¦æ­£è¦åŒ–æ–¹é‡ã‚’æ±ºã‚ã‚‹
     int minBlock = INT_MAX, maxBlock = INT_MIN;
     for (auto& n : json["notes"])
     {
-        // •ˆ–Ê‚ª1..4‚Ì”ÍˆÍ‚È‚ç³‹K‰»‚·‚éB5ˆÈã‚ ‚ê‚Î‚»‚Ì‚Ü‚Üg‚¤
         int block = n.value("block", 1);
         minBlock = std::min(minBlock, block);
         maxBlock = std::max(maxBlock, block);
         
-        // qƒm[ƒc‚Ìƒ`ƒFƒbƒN
         if (n.contains("notes") && !n["notes"].empty())
         {
-			// qƒm[ƒc‚à“¯—l‚É block ‚ğƒ`ƒFƒbƒN
             auto& child = n["notes"][0];
             int cblock = child.value("block", block);
             minBlock = std::min(minBlock, cblock);
             maxBlock = std::max(maxBlock, cblock);
         }
     }
-    bool needsSubtract = (minBlock >= 1 && maxBlock <= 4); // 1..4 ‚Ì•ˆ–Ê‚È‚ç -1 ‚·‚é
 
-    // ƒm[ƒcƒf[ƒ^‚ğ“Ç‚İ‚ŞBqƒm[ƒc(ƒƒ“ƒOƒm[ƒc‚ÌI“_)‚ª‚ ‚ê‚Î‚»‚ê‚à’Ç‰Á‚·‚é
+    // 4ãƒ¬ãƒ¼ãƒ³ç”¨ã®è­œé¢ã‹ã©ã†ã‹ã‚’åˆ¤å®š
+    bool is4LaneChart = false;
+    if (json.contains("maxBlock")) {
+        is4LaneChart = (json.value("maxBlock", 6) == 4);
+    } else {
+        if ((minBlock >= 1 && maxBlock <= 4) || (minBlock == 0 && maxBlock <= 3)) {
+            is4LaneChart = true;
+        }
+    }
+
+    // ãƒãƒ¼ãƒ„ãƒ‡ãƒ¼ã‚¿ã‚’èª­ã¿è¾¼ã‚€
     for (auto& n : json["notes"])
     {
-        // ƒm[ƒc‚ÌŠî–{î•ñ‚ğ“Ç‚İ‚Ş
         int type = n.value("type", 1);
         int num = n.value("num", 0);
         int block = n.value("block", 1);
         int LPB = n.value("LPB", 4);
 
-        // ³‹K‰»F•ˆ–Ê‚ª 1..4 ‚Ìê‡‚Í 0..3 ‚É•ÏŠ·
-        int lane = needsSubtract ? (block - 1) : block;
+        // 6ãƒ¬ãƒ¼ãƒ³åŸºæº–(0ã€œ5)ã§ã®ãƒ¬ãƒ¼ãƒ³ä½ç½®è¨ˆç®—
+        int lane = block;
+        if (is4LaneChart) {
+            // 4ãƒ¬ãƒ¼ãƒ³è­œé¢ã®å ´åˆã€ä¸­å¤®(1,2,3,4)ã«å¯„ã›ã‚‹
+            if (minBlock >= 1) {
+                // åŸè­œé¢ãŒ1ã€œ4ã®å ´åˆ
+                lane = block; 
+            } else {
+                // åŸè­œé¢ãŒ0ã€œ3ã®å ´åˆ
+                lane = block + 1;
+            }
+        } else {
+            // 6ãƒ¬ãƒ¼ãƒ³è­œé¢ã¾ãŸã¯ãã®ä»–
+            if (minBlock >= 1) {
+                lane = block - 1; // 1-indexedãªã‚‰0-indexedã«
+            }
+        }
 
-        float startTime = calcTime(num, LPB);
+        float noteBeat = (float)num / LPB;
+        float startTime = GetTimeFromBeat(noteBeat);
 
-        // ³‹K‰»‚³‚ê‚½î•ñ‚ğJudgeNote‚ÉƒZƒbƒg‚µ‚Ä’Ç‰Á
         JudgeNote jn;
         jn.lane = lane;
         jn.type = type;
         jn.time = startTime;
         jn.endTime = startTime;
+        jn.beat = noteBeat;
+        jn.endBeat = noteBeat;
         judgeNotes.push_back(jn);
 
-        // qƒm[ƒciI“_j‚ª‚ ‚ê‚Î’Ç‰ÁBI“_‚Í type=3 ‚Æ‚µ‚Äˆµ‚¤iˆÀ‘S‚Ì‚½‚ßj
         if (n.contains("notes") && !n["notes"].empty())
         {
-            // qƒm[ƒc‚Ìî•ñ‚ğ“Ç‚İ‚Ş
             auto& child = n["notes"][0];
 
-            // qƒm[ƒc‚à³‹K‰»‚·‚é
             int endNum = child.value("num", 0);
             int endBlock = child.value("block", block);
             int endLPB = child.value("LPB", LPB);
-            int endLane = needsSubtract ? (endBlock - 1) : endBlock;
-            float endTime = calcTime(endNum, endLPB);
+            
+            int endLane = endBlock;
+            if (is4LaneChart) {
+                if (minBlock >= 1) {
+                    endLane = endBlock;
+                } else {
+                    endLane = endBlock + 1;
+                }
+            } else {
+                if (minBlock >= 1) {
+                    endLane = endBlock - 1;
+                }
+            }
 
-            // ³‹K‰»‚³‚ê‚½î•ñ‚ğJudgeNote‚ÉƒZƒbƒg‚µ‚Ä’Ç‰Á
+            float endBeat = (float)endNum / endLPB;
+            float endTime = GetTimeFromBeat(endBeat);
+
             JudgeNote end;
             end.lane = endLane;
             end.type = 3;
             end.time = endTime;
             end.endTime = endTime;
+            end.beat = endBeat;
+            end.endBeat = endBeat;
             judgeNotes.push_back(end);
         }
     }
 
-    // ŠÔ‚Åƒ\[ƒg
     std::sort(judgeNotes.begin(), judgeNotes.end(),
         [](auto& a, auto& b) { return a.time < b.time; });
+}
+
+// @brief æ‹æ•°ï¼ˆãƒ“ãƒ¼ãƒˆï¼‰ã‹ã‚‰çµ¶å¯¾æ™‚é–“ï¼ˆç§’ï¼‰ã®è¨ˆç®—
+float NotesData::GetTimeFromBeat(float beat) const {
+    if (bpmChanges.empty()) {
+        float secPerBeat = 60.0f / bpm;
+        return (secPerBeat * beat) + offset * 0.01f;
+    }
+
+    // å¯¾å¿œã™ã‚‹BPMåŒºé–“ã‚’æ¢ã™
+    float currentBeat = 0.0f;
+    float currentTime = offset * 0.01f;
+    float currentBpm = bpm;
+
+    for (const auto& bc : bpmChanges) {
+        if (beat <= bc.beat) {
+            break;
+        }
+        currentBeat = bc.beat;
+        currentTime = bc.time;
+        currentBpm = bc.bpm;
+    }
+
+    float dBeat = beat - currentBeat;
+    float secPerBeat = 60.0f / currentBpm;
+    return currentTime + dBeat * secPerBeat;
+}
+
+// @brief çµ¶å¯¾æ™‚é–“ï¼ˆç§’ï¼‰ã‹ã‚‰æ‹æ•°ï¼ˆãƒ“ãƒ¼ãƒˆï¼‰ã®è¨ˆç®—
+float NotesData::GetBeatFromTime(float time) const {
+    if (bpmChanges.empty()) {
+        float secPerBeat = 60.0f / bpm;
+        if (secPerBeat == 0.0f) return 0.0f;
+        return (time - offset * 0.01f) / secPerBeat;
+    }
+
+    // å¯¾å¿œã™ã‚‹BPMåŒºé–“ã‚’æ¢ã™
+    float currentBeat = 0.0f;
+    float currentTime = offset * 0.01f;
+    float currentBpm = bpm;
+
+    for (const auto& bc : bpmChanges) {
+        if (time <= bc.time) {
+            break;
+        }
+        currentBeat = bc.beat;
+        currentTime = bc.time;
+        currentBpm = bc.bpm;
+    }
+
+    float dTime = time - currentTime;
+    float beatsPerSec = currentBpm / 60.0f;
+    return currentBeat + dTime * beatsPerSec;
 }

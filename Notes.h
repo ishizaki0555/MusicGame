@@ -5,7 +5,7 @@
 // ========================================
 // 
 // Notes.h
-// ƒm[ƒcƒf[ƒ^‚Ì\‘¢‘Ì‚ÆAJSON‚©‚çƒm[ƒcƒf[ƒ^‚ğ“Ç‚İ‚Ş‹@”\‚ğ’ñ‹Ÿ‚µ‚Ü‚·B
+// ãƒãƒ¼ãƒ„ãƒ‡ãƒ¼ã‚¿ã®æ§‹é€ ä½“ã¨ã€JSONã‹ã‚‰ãƒãƒ¼ãƒ„ãƒ‡ãƒ¼ã‚¿ã‚’èª­ã¿è¾¼ã‚€æ©Ÿèƒ½ã‚’æä¾›ã—ã¾ã™ã€‚
 // 
 //========================================
 
@@ -15,28 +15,46 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 
-// ƒm[ƒc”»’è—p‚Ì\‘¢‘Ì
-struct JudgeNote {
-	int lane;               // ƒŒ[ƒ“”Ô†
-    int type;               // ƒm[ƒc‚Ìí—Ş
-	float time;			    // ƒm[ƒc‚ÌŠJnŠÔi•bj
-    float endTime;          // ƒƒ“ƒOƒm[ƒc‚ÌI“_ŠÔE’Êíƒm[ƒc‚ÍŠJnŠÔ‚Æ“¯‚¶
-    bool judged = false;    // ”»’èÏ‚İ‚©‚Ç‚¤‚©
+// BPMå¤‰æ›´ã®æ§‹é€ ä½“
+struct BpmChange {
+    int tick;               // JSONã§ã®tick
+    float bpm;              // å¤‰æ›´å¾Œã®BPM
+    float time;             // ã“ã®å¤‰æ›´ãŒèµ·ã“ã‚‹çµ¶å¯¾æ™‚é–“ï¼ˆç§’ï¼‰
+    float beat;             // ã“ã®å¤‰æ›´ãŒèµ·ã“ã‚‹çµ¶å¯¾æ‹æ•°ï¼ˆãƒ“ãƒ¼ãƒˆï¼‰
 };
 
-// ƒm[ƒcƒf[ƒ^‘S‘Ì‚ğŠÇ—‚·‚éƒNƒ‰ƒX
+// ãƒãƒ¼ãƒ„åˆ¤å®šç”¨ã®æ§‹é€ ä½“
+struct JudgeNote {
+	int lane;               // ãƒ¬ãƒ¼ãƒ³ç•ªå·
+    int type;               // ãƒãƒ¼ãƒ„ã®ç¨®é¡
+	float time;			    // ãƒãƒ¼ãƒ„ã®é–‹å§‹æ™‚é–“ï¼ˆç§’ï¼‰
+    float endTime;          // ãƒ­ãƒ³ã‚°ãƒãƒ¼ãƒ„ã®çµ‚ç‚¹æ™‚é–“ãƒ»é€šå¸¸ãƒãƒ¼ãƒ„ã¯é–‹å§‹æ™‚é–“ã¨åŒã˜
+    float beat;             // ãƒãƒ¼ãƒ„ã®é–‹å§‹æ‹æ•°ï¼ˆãƒ“ãƒ¼ãƒˆï¼‰
+    float endBeat;          // ãƒ­ãƒ³ã‚°ãƒãƒ¼ãƒ„ã®çµ‚äº†æ‹æ•°ï¼ˆãƒ“ãƒ¼ãƒˆï¼‰
+    bool judged = false;    // åˆ¤å®šæ¸ˆã¿ã‹ã©ã†ã‹
+};
+
+// ãƒãƒ¼ãƒ„ãƒ‡ãƒ¼ã‚¿å…¨ä½“ã‚’ç®¡ç†ã™ã‚‹ã‚¯ãƒ©ã‚¹
 class NotesData
 {
 public:
-    std::vector<JudgeNote> judgeNotes;              // ƒm[ƒc‚ÌƒŠƒXƒg
+    std::vector<JudgeNote> judgeNotes;              // ãƒãƒ¼ãƒ„ã®ãƒªã‚¹ãƒˆ
+    std::vector<BpmChange> bpmChanges;              // BPMå¤‰æ›´ã®ãƒªã‚¹ãƒˆ
 
-    std::string musicPath;                          // ‰¹Œ¹‚Ìƒtƒ@ƒCƒ‹ƒpƒX
-    std::string folderPath;                         // ‰¹Œ¹‚ÌƒtƒHƒ‹ƒ_ƒpƒX
-    std::string title;                              // ‹È–¼
-    int bpm = 0;                                    // BPM
-    int offset = 0;                                 // ƒIƒtƒZƒbƒg(ms)
+    std::string musicPath;                          // éŸ³æºã®ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹
+    std::string folderPath;                         // éŸ³æºã®ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹
+    std::string title;                              // æ›²å
+    float bpm = 0;                                  // BPM
+    int offset = 0;                                 // ã‚ªãƒ•ã‚»ãƒƒãƒˆ(ms)
+    int maxLPB = 24;                                // ã‚½ãƒ•ãƒ©ãƒ³è¨ˆç®—ç”¨ã®åŸºæº–LPB
 
-    // @brief JSON‚©‚çƒm[ƒcƒf[ƒ^‚ğ“Ç‚İ‚Ş
-    // @param json JSONƒIƒuƒWƒFƒNƒg
+    // @brief JSONã‹ã‚‰ãƒãƒ¼ãƒ„ãƒ‡ãƒ¼ã‚¿ã‚’èª­ã¿è¾¼ã‚€
+    // @param json JSONã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
     void LoadFromJson(const nlohmann::json& json);
+
+    // @brief æ‹æ•°ï¼ˆãƒ“ãƒ¼ãƒˆï¼‰ã‹ã‚‰çµ¶å¯¾æ™‚é–“ï¼ˆç§’ï¼‰ã®è¨ˆç®—
+    float GetTimeFromBeat(float beat) const;
+
+    // @brief çµ¶å¯¾æ™‚é–“ï¼ˆç§’ï¼‰ã‹ã‚‰æ‹æ•°ï¼ˆãƒ“ãƒ¼ãƒˆï¼‰ã®è¨ˆç®—
+    float GetBeatFromTime(float time) const;
 };

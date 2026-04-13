@@ -5,17 +5,17 @@
 // ========================================
 // 
 // GameScene.cpp
-// ƒm[ƒc‚ÌˆÚ“®E”»’èˆ—AƒXƒRƒAŒvZAUI•`‰æAƒŒ[ƒ“‰‰o‚È‚Ç
-// ƒŠƒYƒ€ƒQ[ƒ€‚ÌƒƒCƒ“ƒƒWƒbƒN‚ğÀ‘•‚µ‚½ƒV[ƒ“‚Å‚·B
+// ãƒãƒ¼ãƒ„ã®ç§»å‹•ãƒ»åˆ¤å®šå‡¦ç†ã€ã‚¹ã‚³ã‚¢è¨ˆç®—ã€UIæç”»ã€ãƒ¬ãƒ¼ãƒ³æ¼”å‡ºãªã©
+// ãƒªã‚ºãƒ ã‚²ãƒ¼ãƒ ã®ãƒ¡ã‚¤ãƒ³ãƒ­ã‚¸ãƒƒã‚¯ã‚’å®Ÿè£…ã—ãŸã‚·ãƒ¼ãƒ³ã§ã™ã€‚
 // 
 //========================================
 
 #include <iostream>
 #include "GameScene.h"
 
-// @brief  ƒRƒ“ƒXƒgƒ‰ƒNƒ^
-// @param notesData ƒm[ƒcƒf[ƒ^
-// @param banner    ƒoƒi[‰æ‘œƒnƒ“ƒhƒ‹
+// @brief  ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+// @param notesData ãƒãƒ¼ãƒ„ãƒ‡ãƒ¼ã‚¿
+// @param banner    ãƒãƒŠãƒ¼ç”»åƒãƒãƒ³ãƒ‰ãƒ«
 GameScene::GameScene(const NotesData& notesData, int banner)
     : LANE_TEX(LoadGraph("Texture/LaneTexture.png"))
     , LIGHT_TEX(LoadGraph("Texture/LightTexture.png"))
@@ -23,40 +23,40 @@ GameScene::GameScene(const NotesData& notesData, int banner)
     , NOTE_TEX(LoadGraph("Texture/NoteTexture.png"))
     , LONG_NOTE_TEX(LoadGraph("Texture/LongNoteTexture.png"))
 {
-    notes = notesData.judgeNotes;            // ƒm[ƒcˆê——‚ğƒRƒs[
-    songName = notesData.title;              // ‹È–¼‚ğ•Û‘¶
-    bannerHandle = banner;                   // ƒoƒi[ƒnƒ“ƒhƒ‹‚ğ•Û‘¶
+    m_notesData = notesData;                 // ãƒãƒ¼ãƒ„ãƒ‡ãƒ¼ã‚¿å…¨ä½“ã‚’ä¿å­˜
+    notes = notesData.judgeNotes;            // ãƒãƒ¼ãƒ„ä¸€è¦§ã‚’ã‚³ãƒ”ãƒ¼
+    songName = notesData.title;              // æ›²åã‚’ä¿å­˜
+    bannerHandle = banner;                   // ãƒãƒŠãƒ¼ãƒãƒ³ãƒ‰ãƒ«ã‚’ä¿å­˜
 
-    // Šy‹È“Ç‚İ‚İ
+    // æ¥½æ›²èª­ã¿è¾¼ã¿
     musicHandle = LoadSoundMem(notesData.musicPath.c_str());
 
-    // Œø‰Ê‰¹‚Ì“Ç‚İ‚İ
+    // åŠ¹æœéŸ³ã®èª­ã¿è¾¼ã¿
     hitSE = LoadSoundMem("Sounds/hit.mp3");
     rongSE = LoadSoundMem("Sounds/rong.mp3");
 
-    // ƒXƒRƒA‚ÌÅ‘å’l‚ğƒm[ƒc”‚©‚çŒvZ
+    // ã‚¹ã‚³ã‚¢ã®æœ€å¤§å€¤ã‚’ãƒãƒ¼ãƒ„æ•°ã‹ã‚‰è¨ˆç®—
     int noteNum = static_cast<int>(notes.size());
     maxScore = noteNum * 5;
 
-    // longBodies ¶¬‰ÓŠ
+    // longBodies ç”Ÿæˆç®‡æ‰€
     for (int i = 0; i < notes.size(); i++)
     {
-        // ƒƒ“ƒOƒm[ƒc‚ÌŠJnƒm[ƒc‚ğŒ©‚Â‚¯‚é
+        // ãƒ­ãƒ³ã‚°ãƒãƒ¼ãƒ„ã®é–‹å§‹ãƒãƒ¼ãƒ„ã‚’è¦‹ã¤ã‘ã‚‹
         if (notes[i].type == 2) // start
         {
-            // “¯‚¶ƒŒ[ƒ“‚ÅType3‚Ìƒm[ƒc‚ğ’T‚·
+            // åŒã˜ãƒ¬ãƒ¼ãƒ³ã§Type3ã®ãƒãƒ¼ãƒ„ã‚’æ¢ã™
             for (int j = i + 1; j < notes.size(); j++)
             {
-                // •ˆ–Ê‚É‚æ‚Á‚Ä‚Íƒƒ“ƒOƒm[ƒc‚ÌI“_‚ª“¯‚¶ƒŒ[ƒ“‚Å‚È‚¢ê‡‚à‚ ‚é‚½‚ßAƒŒ[ƒ“‚àƒ`ƒFƒbƒN‚·‚é
+                // è­œé¢ã«ã‚ˆã£ã¦ã¯ãƒ­ãƒ³ã‚°ãƒãƒ¼ãƒ„ã®çµ‚ç‚¹ãŒåŒã˜ãƒ¬ãƒ¼ãƒ³ã§ãªã„å ´åˆã‚‚ã‚ã‚‹ãŸã‚ã€ãƒ¬ãƒ¼ãƒ³ã‚‚ãƒã‚§ãƒƒã‚¯ã™ã‚‹
                 if (notes[j].type == 3 && notes[j].lane == notes[i].lane)
                 {
                     LongBody body;
-                    // ‚±‚±‚Å‹­§³‹K‰»i•ˆ–Ê‚ª 1..4 ‚Ìê‡‚É”õ‚¦‚éj
-                    int lane = notes[i].lane;
-                    if (lane > 3) lane = lane - 1; // 1..4 -> 0..3 ‚Ì•â³
-                    body.lane = lane;
+                    body.lane = notes[i].lane;
                     body.startTime = notes[i].time;
                     body.endTime = notes[j].time;
+                    body.startBeat = notes[i].beat;
+                    body.endBeat = notes[j].beat;
                     longBodies.push_back(body);
                     break;
                 }
@@ -64,30 +64,30 @@ GameScene::GameScene(const NotesData& notesData, int banner)
         }
     }
 
-    // ƒm[ƒcÁ”ïƒtƒ‰ƒO‚ğ‰Šú‰»
+    // ãƒãƒ¼ãƒ„æ¶ˆè²»ãƒ•ãƒ©ã‚°ã‚’åˆæœŸåŒ–
     noteConsumed.resize(notes.size(), 0);
-    for (int i = 0; i < 4; i++) nextNoteIndex[i] = false;
+    for (int i = 0; i < 6; i++) nextNoteIndex[i] = 0;
 }
 
-// @brief ”»’èƒƒWƒbƒN
-// @param diffMs ”»’èƒ‰ƒCƒ“‚Æ‚Ì·iƒ~ƒŠ•bj
-// @return ”»’èŒ‹‰Êi0=PERFECT,1=GREAT,2=GOOD,3=MISSj
+// @brief åˆ¤å®šãƒ­ã‚¸ãƒƒã‚¯
+// @param diffMs åˆ¤å®šãƒ©ã‚¤ãƒ³ã¨ã®å·®ï¼ˆãƒŸãƒªç§’ï¼‰
+// @return åˆ¤å®šçµæœï¼ˆ0=PERFECT,1=GREAT,2=GOOD,3=MISSï¼‰
 int GameScene::Judge(int diffMs)
 {
-    // ·‚Ìâ‘Î’l‚ğB‚é
+    // å·®ã®çµ¶å¯¾å€¤ã‚’æ’®ã‚‹
     diffMs = abs(diffMs);
 
-    // ”»’è”ÍˆÍ‚É‰‚¶‚ÄŒ‹‰Ê‚ğ•Ô‚·
-    if (diffMs <= PERFECT_RANGE) return 0;   // PERFECT ”»’è
-    if (diffMs <= GREAT_RANGE)   return 1;   // GREAT ”»’è
-    if (diffMs <= GOOD_RANGE)    return 2;   // GOOD ”»’è
-    return 3;                                // MISS ”»’è
+    // åˆ¤å®šç¯„å›²ã«å¿œã˜ã¦çµæœã‚’è¿”ã™
+    if (diffMs <= PERFECT_RANGE) return 0;   // PERFECT åˆ¤å®š
+    if (diffMs <= GREAT_RANGE)   return 1;   // GREAT åˆ¤å®š
+    if (diffMs <= GOOD_RANGE)    return 2;   // GOOD åˆ¤å®š
+    return 3;                                // MISS åˆ¤å®š
 }
 
-// @brief ”»’è•¶š‚Ì’Ç‰Á
-// @param lane ƒŒ[ƒ“
-// @param judgeType ”»’è‚Ìí—Şi0=PERFECT,1=GREAT,2=GOOD,3=MISSj
-// @param noteIndex ”»’è‚µ‚½ƒm[ƒc‚ÌƒCƒ“ƒfƒbƒNƒX
+// @brief åˆ¤å®šæ–‡å­—ã®è¿½åŠ 
+// @param lane ãƒ¬ãƒ¼ãƒ³
+// @param judgeType åˆ¤å®šã®ç¨®é¡ï¼ˆ0=PERFECT,1=GREAT,2=GOOD,3=MISSï¼‰
+// @param noteIndex åˆ¤å®šã—ãŸãƒãƒ¼ãƒ„ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
 void GameScene::AddJudgeText(int lane, int result, int noteIndex)
 {
     JudgeTextInfo jt;
@@ -99,7 +99,7 @@ void GameScene::AddJudgeText(int lane, int result, int noteIndex)
     jt.hold = 10;
     jt.judgeType = result;
 
-    // ƒXƒRƒAŒvZ
+    // ã‚¹ã‚³ã‚¢è¨ˆç®—
     switch (result)
     {
     case 0: perfectCount++; ratioScore += 5; combo++; break;
@@ -108,67 +108,69 @@ void GameScene::AddJudgeText(int lane, int result, int noteIndex)
     case 3: missCount++;    combo = 0; break;
     }
 
-    // Œ»İ‚Ìƒm[ƒc‚ğ”»’èÏ‚İ‚É‚µ‚Ä•`‰æ‚ğI—¹‚·‚é
+    // ç¾åœ¨ã®ãƒãƒ¼ãƒ„ã‚’åˆ¤å®šæ¸ˆã¿ã«ã—ã¦æç”»ã‚’çµ‚äº†ã™ã‚‹
     if (noteIndex >= 0 && noteIndex < static_cast<int>(noteConsumed.size()))
         noteConsumed[noteIndex] = 1;
 
 	judgeTexts.push_back(jt);
 }
 
-// @brief XV‚µ‚Ü‚·
+// @brief æ›´æ–°ã—ã¾ã™
 void GameScene::Update()
 {
     // ============================
-    // ƒJƒEƒ“ƒgƒ_ƒEƒ“ˆ—
+    // ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³å‡¦ç†
     // ============================
     
-    // ƒQ[ƒ€ŠJn‘O‚©‚Ç‚¤‚©”»’è
+    // ã‚²ãƒ¼ãƒ é–‹å§‹å‰ã‹ã©ã†ã‹åˆ¤å®š
     if (!started)
     {
-        countDown--;    // ƒJƒEƒ“ƒgƒ_ƒEƒ“‚ği‚ß‚é
+        countDown--;    // ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³ã‚’é€²ã‚ã‚‹
 
-        // ƒJƒEƒ“ƒg‚ª0‚É‚È‚Á‚½‚çŠJn
+        // ã‚«ã‚¦ãƒ³ãƒˆãŒ0ã«ãªã£ãŸã‚‰é–‹å§‹
         if (countDown <= 0)
         {
             started = true;
-            PlaySoundMem(musicHandle, DX_PLAYTYPE_BACK); // Šy‹ÈÄ¶
+            PlaySoundMem(musicHandle, DX_PLAYTYPE_BACK); // æ¥½æ›²å†ç”Ÿ
         }
-        return; // ŠJn‘O‚Í‚±‚±‚ÅI—¹
+        return; // é–‹å§‹å‰ã¯ã“ã“ã§çµ‚äº†
     }
 
     // ============================
-    // ƒŒ[ƒ““ü—Íˆ—iS D J Kj
+    // ãƒ¬ãƒ¼ãƒ³å…¥åŠ›å‡¦ç†ï¼ˆA S D J K Lï¼‰
     // ============================
-    int keys[4] = {
+    int keys[6] = {
+        KEY_INPUT_A,
         KEY_INPUT_S,
         KEY_INPUT_D,
         KEY_INPUT_J,
-        KEY_INPUT_K
+        KEY_INPUT_K,
+        KEY_INPUT_L
     };
 
-    // ŠeƒŒ[ƒ“‚ÌƒL[“ü—Í‚ğŠm”F
-    for (int i = 0; i < 4; i++)
+    // å„ãƒ¬ãƒ¼ãƒ³ã®ã‚­ãƒ¼å…¥åŠ›ã‚’ç¢ºèª
+    for (int i = 0; i < 6; i++)
     {
-        nowKey[i] = (CheckHitKey(keys[i]) != 0);    // Œ»İ‚ÌƒL[‚ğ‹L˜^
-        keyDown[i] = (nowKey[i] && !prevKey[i]);    // ƒL[‚ğ‰Ÿ‚µ‚½uŠÔ
-        keyUp[i] = (!nowKey[i] && prevKey[i]);      // ƒL[‚ğ—£‚µ‚½uŠÔ
-        prevKey[i] = nowKey[i];                     // ‘O‚ÌƒL[‚ğXV
+        nowKey[i] = (CheckHitKey(keys[i]) != 0);    // ç¾åœ¨ã®ã‚­ãƒ¼ã‚’è¨˜éŒ²
+        keyDown[i] = (nowKey[i] && !prevKey[i]);    // ã‚­ãƒ¼ã‚’æŠ¼ã—ãŸç¬é–“
+        keyUp[i] = (!nowKey[i] && prevKey[i]);      // ã‚­ãƒ¼ã‚’é›¢ã—ãŸç¬é–“
+        prevKey[i] = nowKey[i];                     // å‰ã®ã‚­ãƒ¼ã‚’æ›´æ–°
 
-        // ƒL[‚ª‰Ÿ‚³‚ê‚½‚ç
+        // ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸã‚‰
         if (CheckHitKey(keys[i]))
-            laneFlash[i] = 10;        // ƒŒ[ƒ“”­Œõ‚ğŠJn
-        // ”­Œõ’†‚È‚ç
+            laneFlash[i] = 10;        // ãƒ¬ãƒ¼ãƒ³ç™ºå…‰ã‚’é–‹å§‹
+        // ç™ºå…‰ä¸­ãªã‚‰
         else if (laneFlash[i] > 0)
-            laneFlash[i]--;           // ™X‚ÉŒ¸Š
+            laneFlash[i]--;           // å¾ã€…ã«æ¸›è¡°
     }
 
     // ============================
-    // ”»’èˆ—
+    // åˆ¤å®šå‡¦ç†
     // ============================
     double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0;
 
-    // ƒŒ[ƒ“‚²‚Æ‚ÉŸ‚Ì–¢ˆ—ƒm[ƒc‚ğŠm”F‚µ‚Ä”»’è
-    for (int lane = 0; lane < 4; lane++)
+    // ãƒ¬ãƒ¼ãƒ³ã”ã¨ã«æ¬¡ã®æœªå‡¦ç†ãƒãƒ¼ãƒ„ã‚’ç¢ºèªã—ã¦åˆ¤å®š
+    for (int lane = 0; lane < 6; lane++)
     {
         int idx = nextNoteIndex[lane];
         while (idx < static_cast<int>(notes.size()))
@@ -176,45 +178,45 @@ void GameScene::Update()
             if (notes[idx].lane == lane && !noteConsumed[idx]) break;
             ++idx;
         }
-		// Ÿ‚Ìƒm[ƒc‚ª‘¶İ‚·‚éê‡A”»’è‚ğs‚¤
+		// æ¬¡ã®ãƒãƒ¼ãƒ„ãŒå­˜åœ¨ã™ã‚‹å ´åˆã€åˆ¤å®šã‚’è¡Œã†
         nextNoteIndex[lane] = idx;
 
-        if (idx >= static_cast<int>(notes.size())) continue; // ‚»‚ÌƒŒ[ƒ“‚É–¢ˆ—ƒm[ƒc‚È‚µ
+        if (idx >= static_cast<int>(notes.size())) continue; // ãã®ãƒ¬ãƒ¼ãƒ³ã«æœªå‡¦ç†ãƒãƒ¼ãƒ„ãªã—
 
         JudgeNote& note = notes[idx];
         float timeLag = fabs(currentTime - note.time);
 
-        // ’Êíƒm[ƒc‚©ƒƒ“ƒOƒm[ƒc‚Ìn“_‚Ìê‡‚Í‰Ÿ‚·“®ì‚Å”»’è
+        // é€šå¸¸ãƒãƒ¼ãƒ„ã‹ãƒ­ãƒ³ã‚°ãƒãƒ¼ãƒ„ã®å§‹ç‚¹ã®å ´åˆã¯æŠ¼ã™å‹•ä½œã§åˆ¤å®š
         if (notes[idx].type == 1 || notes[idx].type == 2)
         {
-            // ƒL[‚ª‰Ÿ‚³‚ê‚½uŠÔ‚É”»’è
+            // ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸç¬é–“ã«åˆ¤å®š
             if (keyDown[lane])
             {
                 if (timeLag <= PERFECT_RANGE)
                 {
                     if (note.type == 2) holding[lane] = true;
                     if (note.type == 3) holding[lane] = false;
-					PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ƒqƒbƒg‰¹Ä¶
+					PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ãƒ’ãƒƒãƒˆéŸ³å†ç”Ÿ
                     AddJudgeText(lane, 0, idx);
                 }
                 else if (timeLag <= GREAT_RANGE)
                 {
                     if (note.type == 2) holding[lane] = true;
                     if (note.type == 3) holding[lane] = false;
-                    PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ƒqƒbƒg‰¹Ä¶
+                    PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ãƒ’ãƒƒãƒˆéŸ³å†ç”Ÿ
                     AddJudgeText(lane, 1, idx);
                 }
                 else if (timeLag <= GOOD_RANGE)
                 {
                     if (note.type == 2) holding[lane] = true;
                     if (note.type == 3) holding[lane] = false;
-                    PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ƒqƒbƒg‰¹Ä¶
+                    PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ãƒ’ãƒƒãƒˆéŸ³å†ç”Ÿ
                     AddJudgeText(lane, 2, idx);
                 }
             }
             else
             {
-                // Œ©“¦‚µ”»’è
+                // è¦‹é€ƒã—åˆ¤å®š
                 if (currentTime > note.time + 0.2f)
                 {
                     if (note.type == 2) holding[lane] = false;
@@ -225,37 +227,45 @@ void GameScene::Update()
                 }
             }
         }
-        // ƒƒ“ƒOƒm[ƒc‚ÌI“_‚Ìê‡‚Í—£‚·“®ì‚Å”»’è
+        // ãƒ­ãƒ³ã‚°ãƒãƒ¼ãƒ„ã®çµ‚ç‚¹ã®å ´åˆã¯é›¢ã™å‹•ä½œã§åˆ¤å®š
         else if (notes[idx].type == 3)
         {
-            // ƒL[‚ª—£‚ê‚½uŠÔ‚É”»’è
+            // ã‚­ãƒ¼ãŒé›¢ã‚ŒãŸç¬é–“ã«åˆ¤å®š
             if (keyUp[lane])
             {
                 if (timeLag <= PERFECT_RANGE)
                 {
                     if (note.type == 2) holding[lane] = false;
                     if (note.type == 3) holding[lane] = false;
-                    PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ƒqƒbƒg‰¹Ä¶
+                    PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ãƒ’ãƒƒãƒˆéŸ³å†ç”Ÿ
                     AddJudgeText(lane, 0, idx);
                 }
                 else if (timeLag <= GREAT_RANGE)
                 {
                     if (note.type == 2) holding[lane] = false;
                     if (note.type == 3) holding[lane] = false;
-                    PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ƒqƒbƒg‰¹Ä¶
+                    PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ãƒ’ãƒƒãƒˆéŸ³å†ç”Ÿ
                     AddJudgeText(lane, 1, idx);
                 }
                 else if (timeLag <= GOOD_RANGE)
                 {
                     if (note.type == 2) holding[lane] = false;
                     if (note.type == 3) holding[lane] = false;
-                    PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ƒqƒbƒg‰¹Ä¶
+                    PlaySoundMem(hitSE, DX_PLAYTYPE_BACK); // ãƒ’ãƒƒãƒˆéŸ³å†ç”Ÿ
                     AddJudgeText(lane, 2, idx);
+                }
+                else if (holding[lane])
+                {
+                    // æ—©ã™ãã‚‹é›¢ä¸Šã¯MISSåˆ¤å®š
+                    holding[lane] = false;
+                    AddJudgeText(lane, 3, idx);
+                    missCount++;
+                    combo = 0;
                 }
             }
             else
             {
-                // Œ©“¦‚µ”»’è
+                // è¦‹é€ƒã—åˆ¤å®š
                 if (currentTime > note.time + 0.2f)
                 {
                     if (note.type == 2) holding[lane] = false;
@@ -270,43 +280,43 @@ void GameScene::Update()
     
 
     // ============================
-    // ƒXƒRƒAŒvZ
+    // ã‚¹ã‚³ã‚¢è¨ˆç®—
     // ============================
     score = (int)(1000000.0f * floor((ratioScore / maxScore) * 1000000.0f) / 1000000.0f);
 
     // ============================
-    // Šy‹ÈI—¹”»’è
+    // æ¥½æ›²çµ‚äº†åˆ¤å®š
     // ============================
     if (GetSoundCurrentTime(musicHandle) >= GetSoundTotalTime(musicHandle))
     {
-        finished = true; // Šy‹ÈI—¹
+        finished = true; // æ¥½æ›²çµ‚äº†
     }
 }
 
-// @brief ƒJƒEƒ“ƒgƒ_ƒEƒ“•`‰æ
+// @brief ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³æç”»
 void GameScene::DrawCountDown()
 {
-    if (started) return;   // ŠJnŒã‚Í•\¦‚µ‚È‚¢
+    if (started) return;   // é–‹å§‹å¾Œã¯è¡¨ç¤ºã—ãªã„
 
-    int sec = countDown / 60 + 1; // c‚è•b”‚ğŒvZ
+    int sec = countDown / 60 + 1; // æ®‹ã‚Šç§’æ•°ã‚’è¨ˆç®—
 
     char buf[32];
     sprintf_s(buf, "%d", sec);
 
-    DrawString(600, 300, buf, GetColor(255, 255, 255)); // ƒJƒEƒ“ƒgƒ_ƒEƒ“•\¦
+    DrawString(600, 300, buf, GetColor(255, 255, 255)); // ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³è¡¨ç¤º
 }
 
-// @brief ƒŒ[ƒ“”­Œõ•`‰æ
+// @brief ãƒ¬ãƒ¼ãƒ³ç™ºå…‰æç”»
 void GameScene::DrawLaneFlash3D()
 {
-    for (int i = 0; i < 4; i++)   // ŠeƒŒ[ƒ“‚Ì”­Œõ‚ğ•`‰æ
+    for (int i = 0; i < 6; i++)   // å„ãƒ¬ãƒ¼ãƒ³ã®ç™ºå…‰ã‚’æç”»
     {
-        if (laneFlash[i] <= 0) continue; // ”­Œõ‚µ‚Ä‚¢‚È‚¢‚È‚çƒXƒLƒbƒv
+        if (laneFlash[i] <= 0) continue; // ç™ºå…‰ã—ã¦ã„ãªã„ãªã‚‰ã‚¹ã‚­ãƒƒãƒ—
 
-        float x1 = (i * laneWidth) - (laneWidth * 2);
+        float x1 = (i * laneWidth) - (laneWidth * 3);
         float x2 = x1 + laneWidth;
 
-        int alpha = laneFlash[i] * 20; // ƒtƒF[ƒhƒAƒEƒg
+        int alpha = laneFlash[i] * 20; // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆ
 
         COLOR_U8 col = GetColorU8(255, 255, 255, alpha);
 
@@ -322,7 +332,7 @@ void GameScene::DrawLaneFlash3D()
                 v[idx].v = 0;
             };
 
-        float z = JUDGE_LINE_Z + 5; // ”»’èƒ‰ƒCƒ“‚Ì­‚µ‰œ
+        float z = JUDGE_LINE_Z + 5; // åˆ¤å®šãƒ©ã‚¤ãƒ³ã®å°‘ã—å¥¥
 
         setV(0, x1, 0, z);
         setV(1, x2, 0, z);
@@ -336,7 +346,7 @@ void GameScene::DrawLaneFlash3D()
     }
 }
 
-// @brief ”»’è•¶š•`‰æ
+// @brief åˆ¤å®šæ–‡å­—æç”»
 void GameScene::DrawJudgeText()
 {
     for (auto& jt : judgeTexts)
@@ -354,7 +364,7 @@ void GameScene::DrawJudgeText()
         case 3: text = "MISS";    baseColor = GetColor(0, 0, 0); break;
         }
 
-        // ƒXƒ‰ƒCƒhˆ—
+        // ã‚¹ãƒ©ã‚¤ãƒ‰å‡¦ç†
         if (jt.hold > 0)
             jt.hold--;
         else
@@ -371,7 +381,7 @@ void GameScene::DrawJudgeText()
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
-    // ƒ^ƒCƒ}[Ø‚ê‚ÌƒeƒLƒXƒg‚ğíœ
+    // ã‚¿ã‚¤ãƒãƒ¼åˆ‡ã‚Œã®ãƒ†ã‚­ã‚¹ãƒˆã‚’å‰Šé™¤
     judgeTexts.erase(
         std::remove_if(judgeTexts.begin(), judgeTexts.end(),
             [](const JudgeTextInfo& jt) { return jt.timer <= 0; }),
@@ -379,20 +389,20 @@ void GameScene::DrawJudgeText()
     );
 }
 
-// @brief •`‰æ‚µ‚Ü‚·
+// @brief æç”»ã—ã¾ã™
 void GameScene::Draw()
 {
-    DrawBox(0, 0, 1280, 720, GetColor(20, 20, 20), TRUE); // ”wŒi
+    DrawBox(0, 0, 1280, 720, GetColor(20, 20, 20), TRUE); // èƒŒæ™¯
 
-    VECTOR eye = VGet(0.0f, 220.0f, -110.0f);
-    VECTOR target = VGet(0.0f, 50.0f, 100.0f);
+    VECTOR eye = VGet(0.0f, 350.0f, -150.0f);
+    VECTOR target = VGet(0.0f, 50.0f, 150.0f);
 
-    SetCameraPositionAndTarget_UpVecY(eye, target); // ƒJƒƒ‰İ’è
+    SetCameraPositionAndTarget_UpVecY(eye, target); // ã‚«ãƒ¡ãƒ©è¨­å®š
 
-    // ƒŒ[ƒ“•`‰æ
-    for (int i = 0; i < 4; i++)
+    // ãƒ¬ãƒ¼ãƒ³æç”»
+    for (int i = 0; i < 6; i++)
     {
-        float x = (i * laneWidth) - (laneWidth * 2);
+        float x = (i * laneWidth) - (laneWidth * 3);
 
         DrawQuad3D(
             VGet(x, LANE_BASE_Y, LANE_FRONT),
@@ -404,13 +414,13 @@ void GameScene::Draw()
     }
 
     // ============================
-    // ƒŒ[ƒ“‹æØ‚èƒ‰ƒCƒ“•`‰æ
+    // ãƒ¬ãƒ¼ãƒ³åŒºåˆ‡ã‚Šãƒ©ã‚¤ãƒ³æç”»
     // ============================
-    for (int i = 0; i <= 4; i++)
+    for (int i = 0; i <= 6; i++)
     {
-        float x = (i * laneWidth) - (laneWidth * 2);
+        float x = (i * laneWidth) - (laneWidth * 3);
 
-        // ƒ‰ƒCƒ“‚Ì‘¾‚³i×‚¢”Âj
+        // ãƒ©ã‚¤ãƒ³ã®å¤ªã•ï¼ˆç´°ã„æ¿ï¼‰
         float lineThickness = 2.0f;
 
         DrawQuad3D(
@@ -418,49 +428,49 @@ void GameScene::Draw()
             VGet(x + lineThickness / 2, LANE_BASE_Y, LANE_FRONT),
             VGet(x + lineThickness / 2, LANE_BASE_Y, LANE_DEPTH),
             VGet(x - lineThickness / 2, LANE_BASE_Y, LANE_DEPTH),
-            LINE_TEX   // Šù‘¶‚Ìƒ‰ƒCƒ“ƒeƒNƒXƒ`ƒƒ‚ğg—p
+            LINE_TEX   // æ—¢å­˜ã®ãƒ©ã‚¤ãƒ³ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ä½¿ç”¨
         );
     }
 
-    // ”»’èƒ‰ƒCƒ“
+    // åˆ¤å®šãƒ©ã‚¤ãƒ³
     DrawQuad3D(
-        VGet(-200, LANE_BASE_Y, JUDGE_LINE_Z),
-        VGet(200, LANE_BASE_Y, JUDGE_LINE_Z),
-        VGet(200, LANE_BASE_Y + 5, JUDGE_LINE_Z),
-        VGet(-200, LANE_BASE_Y + 5, JUDGE_LINE_Z),
+        VGet(-300, LANE_BASE_Y, JUDGE_LINE_Z),
+        VGet(300, LANE_BASE_Y, JUDGE_LINE_Z),
+        VGet(300, LANE_BASE_Y + 5, JUDGE_LINE_Z),
+        VGet(-300, LANE_BASE_Y + 5, JUDGE_LINE_Z),
         LINE_TEX
     );
 
     // ============================
-    // ƒL[ƒKƒCƒh•`‰æ
+    // ã‚­ãƒ¼ã‚¬ã‚¤ãƒ‰æç”»
     // ============================
-    const char* keyNames[4] = { "S", "D", "J", "K" };
+    const char* keyNames[6] = { "A", "S", "D", "J", "K", "L" };
 
-    // ƒŒ[ƒ“‚æ‚èL‚¢ŠÔŠu‚Å”z’u‚µ‚½‚¢ê‡
-    float guideSpacing = laneWidth * 1.5f;
-    float startX = -guideSpacing * 1.5f;     // ¶’[‚ÌŠJnˆÊ’u
+    // ãƒ¬ãƒ¼ãƒ³ã‚ˆã‚Šå°‘ã—åºƒã„é–“éš”ã§é…ç½®ã™ã‚‹
+    float guideSpacing = laneWidth * 1.3f;
+    float startX = -guideSpacing * 2.0f;     // å·¦ç«¯ã®é–‹å§‹ä½ç½®
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 6; i++)
     {
         float x = startX + guideSpacing * i;
         VECTOR screenPos = ConvWorldPosToScreenPos(VGet(x, 0, JUDGE_LINE_Z + 100));
 
-        // ‰æ–Ê‰º•”‚ÉƒL[ƒKƒCƒh‚ğ•`‰æ
+        // ç”»é¢ä¸‹éƒ¨ã«ã‚­ãƒ¼ã‚¬ã‚¤ãƒ‰ã‚’æç”»
         DrawString(
-            (int)screenPos.x - 10,
+            (int)screenPos.x - 90,
             670,
             keyNames[i],
             GetColor(255, 255, 255)
         );
     }
 
-    // ƒJƒEƒ“ƒgƒ_ƒEƒ“•\¦
+    // ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³è¡¨ç¤º
     DrawCountDown();
 
-    // ƒŒ[ƒ“”­Œõ
+    // ãƒ¬ãƒ¼ãƒ³ç™ºå…‰
     DrawLaneFlash3D();
 
-    // ”»’è•¶š
+    // åˆ¤å®šæ–‡å­—
     DrawJudgeText();
 
     // UI
@@ -468,29 +478,38 @@ void GameScene::Draw()
     DrawCombo();
     DrawSongInfo();
 
-    if (!started) return; // ŠJn‘O‚Íƒm[ƒc‚ğ•`‰æ‚µ‚È‚¢
+    if (!started) return; // é–‹å§‹å‰ã¯ãƒãƒ¼ãƒ„ã‚’æç”»ã—ãªã„
 
-    // currentTime ‚ğæ“¾‚µ‚½’¼Œã‚É longBodies ‚ğæ‚É•`‰æ‚·‚éƒuƒƒbƒN‚ğ’Ç‰Á
+    // currentTime ã‚’å–å¾—ã—ãŸç›´å¾Œã« longBodies ã‚’å…ˆã«æç”»ã™ã‚‹ãƒ–ãƒ­ãƒƒã‚¯ã‚’è¿½åŠ 
     double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0;
+    float currentBeat = m_notesData.GetBeatFromTime(currentTime);
+    
+    // ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«é€Ÿåº¦ã®åŸºæº–ã‚’ãƒ“ãƒ¼ãƒˆã«åˆã‚ã›ã‚‹
+    float baseBpm = m_notesData.bpm > 0 ? m_notesData.bpm : 120.0f;
+    float scrollSpeedPerBeat = scrollSpeed * (60.0f / baseBpm);
 
-    // LongBodyi‘Ñj‚ğæ‚É•`‰æ
+    // LongBodyï¼ˆå¸¯ï¼‰ã‚’å…ˆã«æç”»
     for (auto& b : longBodies)
     {
-        float dtStart = b.startTime - currentTime;
-        float dtEnd = b.endTime - currentTime;
+        float dBeatStart = b.startBeat - currentBeat;
+        float dBeatEnd = b.endBeat - currentBeat;
 
-        float zStart = dtStart * scrollSpeed;
-        float zEnd = dtEnd * scrollSpeed;
+        float zStart = dBeatStart * scrollSpeedPerBeat;
+        float zEnd = dBeatEnd * scrollSpeedPerBeat;
 
-        // ƒz[ƒ‹ƒh’†‚Í‘Ñ‚ÌI“_‚ğ”»’èƒ‰ƒCƒ“‚ÉŒÅ’èi”»’èƒ‰ƒCƒ“‚æ‚è‰œ‘¤‚ğ•`‚©‚È‚¢j
-        if (b.lane >= 0 && b.lane < 4 && holding[b.lane] && zStart <= JUDGE_LINE_Z)
+        // ãƒ›ãƒ¼ãƒ«ãƒ‰ä¸­ã¯å¸¯ã®çµ‚ç‚¹ã‚’åˆ¤å®šãƒ©ã‚¤ãƒ³ã«å›ºå®šï¼ˆåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚ˆã‚Šå¥¥å´ã‚’æã‹ãªã„ï¼‰
+        if (b.lane >= 0 && b.lane < 6 && holding[b.lane] && zStart <= JUDGE_LINE_Z)
             zStart = JUDGE_LINE_Z;
 
-        // ‰æ–ÊŠOƒ`ƒFƒbƒNi‘Ñ‚ªŠ®‘S‚É‰æ–ÊŠO‚È‚ç•`‰æ‚µ‚È‚¢j
+        // çµ‚ç‚¹ãŒå§‹ç‚¹ã‚ˆã‚Šæ‰‹å‰ã«æ¥ã¦ã—ã¾ã£ãŸã‚‰ï¼ˆè£è¿”ã‚‹ã®ã‚’é˜²ãï¼‰ã€æç”»ã—ãªã„
+        if (zEnd <= zStart)
+            continue;
+
+        // ç”»é¢å¤–ãƒã‚§ãƒƒã‚¯ï¼ˆå¸¯ãŒå®Œå…¨ã«ç”»é¢å¤–ãªã‚‰æç”»ã—ãªã„ï¼‰
         if ((zStart < LANE_FRONT && zEnd < LANE_FRONT) || (zStart> LANE_DEPTH && zEnd > LANE_DEPTH))
             continue;
 
-        float xCenter = -2 * laneWidth + laneWidth * b.lane + laneWidth / 2;
+        float xCenter = -3 * laneWidth + laneWidth * b.lane + laneWidth / 2;
         float halfWidth = laneWidth / 3;
 
         DrawQuad3D(
@@ -502,30 +521,30 @@ void GameScene::Draw()
         );
     }
 
-    // Šù‘¶‚Ìƒm[ƒc•`‰æi”»’è—p notes ‚ğ‚»‚Ì‚Ü‚Ü•`‰æj
+    // æ—¢å­˜ã®ãƒãƒ¼ãƒ„æç”»ï¼ˆåˆ¤å®šç”¨ notes ã‚’ãã®ã¾ã¾æç”»ï¼‰
     for (int i = 0; i < notes.size(); i++)
     {
-        // ƒm[ƒc‚ª”»’è‚³‚ê‚Ä‚¢‚½‚ç•`‰æ‚µ‚È‚¢
+        // ãƒãƒ¼ãƒ„ãŒåˆ¤å®šã•ã‚Œã¦ã„ãŸã‚‰æç”»ã—ãªã„
         if (noteConsumed[i]) continue;
 
-        // ƒm[ƒc‚Ìî•ñ‚ğæ“¾
+        // ãƒãƒ¼ãƒ„ã®æƒ…å ±ã‚’å–å¾—
         JudgeNote& n = notes[i];
 
-        // ’Êíƒm[ƒc & ƒƒ“ƒOŠJnƒm[ƒcin“_j
+        // é€šå¸¸ãƒãƒ¼ãƒ„ & ãƒ­ãƒ³ã‚°é–‹å§‹ãƒãƒ¼ãƒ„ï¼ˆå§‹ç‚¹ï¼‰
         if (n.type == 1 || n.type == 2)
         {
-            // ƒm[ƒc‚ÌˆÊ’u‚ğŒvZ
-            float dt = n.time - currentTime;
-            float z = dt * scrollSpeed;
+            // ãƒãƒ¼ãƒ„ã®ä½ç½®ã‚’è¨ˆç®—
+            float dBeat = n.beat - currentBeat;
+            float z = dBeat * scrollSpeedPerBeat;
 
-            // ‰æ–ÊŠOƒ`ƒFƒbƒNiƒm[ƒc‚ª‰æ–ÊŠO‚È‚ç•`‰æ‚µ‚È‚¢j
+            // ç”»é¢å¤–ãƒã‚§ãƒƒã‚¯ï¼ˆãƒãƒ¼ãƒ„ãŒç”»é¢å¤–ãªã‚‰æç”»ã—ãªã„ï¼‰
             if (z < LANE_FRONT || z > LANE_DEPTH) continue;
 
-            // ƒŒ[ƒ“‚Ì’†‰›‚ÌˆÊ’u‚ğŒvZ
-            float xCenter = -2 * laneWidth + laneWidth * n.lane + laneWidth / 2;
+            // ãƒ¬ãƒ¼ãƒ³ã®ä¸­å¤®ã®ä½ç½®ã‚’è¨ˆç®—
+            float xCenter = -3 * laneWidth + laneWidth * n.lane + laneWidth / 2;
             float halfWidth = laneWidth / 3;
 
-            // ƒm[ƒc‚Ì•`‰æ
+            // ãƒãƒ¼ãƒ„ã®æç”»
             DrawQuad3D(
                 VGet(xCenter - halfWidth, 0.1f, z),
                 VGet(xCenter + halfWidth, 0.1f, z),
@@ -535,15 +554,15 @@ void GameScene::Draw()
             );
         }
 
-        // ƒƒ“ƒOI—¹ƒm[ƒciI“_j
+        // ãƒ­ãƒ³ã‚°çµ‚äº†ãƒãƒ¼ãƒ„ï¼ˆçµ‚ç‚¹ï¼‰
         if (n.type == 3)
         {
-            float dt = n.time - currentTime;
-            float z = dt * scrollSpeed;
+            float dBeat = n.beat - currentBeat;
+            float z = dBeat * scrollSpeedPerBeat;
 
             if (z < LANE_FRONT || z > LANE_DEPTH) continue;
 
-            float xCenter = -2 * laneWidth + laneWidth * n.lane + laneWidth / 2;
+            float xCenter = -3 * laneWidth + laneWidth * n.lane + laneWidth / 2;
             float halfWidth = laneWidth / 3;
 
             DrawQuad3D(
@@ -557,45 +576,45 @@ void GameScene::Draw()
     }
 }
 
-// @brief ƒRƒ“ƒ{”‚ğ•`‰æ‚µ‚Ü‚·
+// @brief ã‚³ãƒ³ãƒœæ•°ã‚’æç”»ã—ã¾ã™
 void GameScene::DrawCombo()
 {
-    if (combo <= 0) return; // ƒRƒ“ƒ{‚ª0‚È‚ç•\¦‚µ‚È‚¢
+    if (combo <= 0) return; // ã‚³ãƒ³ãƒœãŒ0ãªã‚‰è¡¨ç¤ºã—ãªã„
 
     char buf[32];
     sprintf_s(buf, "%d", combo);
 
-    DrawString(1100, 300, buf, GetColor(255, 255, 255)); // ƒRƒ“ƒ{•\¦
+    DrawString(1100, 300, buf, GetColor(255, 255, 255)); // ã‚³ãƒ³ãƒœè¡¨ç¤º
 }
 
-// @brief ƒXƒRƒA‚ğ•`‰æ‚µ‚Ü‚·
+// @brief ã‚¹ã‚³ã‚¢ã‚’æç”»ã—ã¾ã™
 void GameScene::DrawScore()
 {
     char buf[32];
-    sprintf_s(buf, "%07d", score); // 7Œ…ƒ[ƒ–„‚ß
+    sprintf_s(buf, "%07d", score); // 7æ¡ã‚¼ãƒ­åŸ‹ã‚
 
-    DrawString(30, 20, buf, GetColor(255, 255, 255)); // ƒXƒRƒA•\¦
+    DrawString(30, 20, buf, GetColor(255, 255, 255)); // ã‚¹ã‚³ã‚¢è¡¨ç¤º
 }
 
-// @brief ‹Èî•ñ‚ğ•`‰æ‚µ‚Ü‚·
+// @brief æ›²æƒ…å ±ã‚’æç”»ã—ã¾ã™
 void GameScene::DrawSongInfo()
 {
     std::string sjis = Utf8ToSjis(songName);
-    // ƒoƒi[•`‰æ
+    // ãƒãƒŠãƒ¼æç”»
     DrawExtendGraph(20, 40, 320, 200, GetBannerHandle(), TRUE);
 
-    // ‹È–¼•\¦
+    // æ›²åè¡¨ç¤º
     DrawString(30, 230, sjis.c_str(), GetColor(200, 200, 200));
 }
 
 std::string GameScene::Utf8ToSjis(const std::string& utf8)
 {
-    // UTF-8 ¨ UTF-16 •ÏŠ·
+    // UTF-8 â†’ UTF-16 å¤‰æ›
     int wlen = MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, nullptr, 0);
     std::wstring wstr(wlen, 0);
     MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, &wstr[0], wlen);
 
-    // UTF-16 ¨ Shift-JIS •ÏŠ·
+    // UTF-16 â†’ Shift-JIS å¤‰æ›
     int len = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
     std::string sjis(len, 0);
     WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, &sjis[0], len, nullptr, nullptr);
@@ -603,11 +622,11 @@ std::string GameScene::Utf8ToSjis(const std::string& utf8)
     return sjis;
 }
 
-// @brief 3DlŠpŒ`•`‰æ
-// @param p1 ’¸“_‚P
-// @param p2 ’¸“_‚Q
-// @param p3 ’¸“_‚R
-// @param p4 ’¸“_‚S
+// @brief 3Då››è§’å½¢æç”»
+// @param p1 é ‚ç‚¹ï¼‘
+// @param p2 é ‚ç‚¹ï¼’
+// @param p3 é ‚ç‚¹ï¼“
+// @param p4 é ‚ç‚¹ï¼”
 void GameScene::DrawQuad3D(
     const VECTOR& p1,
     const VECTOR& p2,
@@ -618,20 +637,20 @@ void GameScene::DrawQuad3D(
 {
     VERTEX3D v[6];
 
-    // lŠpŒ`‚ğOŠpŒ`2–‡‚É•ªŠ„‚µ‚Äİ’è
+    // å››è§’å½¢ã‚’ä¸‰è§’å½¢2æšã«åˆ†å‰²ã—ã¦è¨­å®š
     v[0].pos = p1; v[1].pos = p2; v[2].pos = p3;
     v[3].pos = p1; v[4].pos = p3; v[5].pos = p4;
 
-    for (int i = 0; i < 6; i++)   // Še’¸“_‚Ì‘®«‚ğİ’è
+    for (int i = 0; i < 6; i++)   // å„é ‚ç‚¹ã®å±æ€§ã‚’è¨­å®š
     {
-        v[i].norm = VGet(0.0f, 1.0f, 0.0f);          // –@ü
-        v[i].dif = GetColorU8(255, 255, 255, 255);   // F
-        v[i].spc = GetColorU8(0, 0, 0, 0);           // ƒXƒyƒLƒ…ƒ‰
+        v[i].norm = VGet(0.0f, 1.0f, 0.0f);          // æ³•ç·š
+        v[i].dif = GetColorU8(255, 255, 255, 255);   // è‰²
+        v[i].spc = GetColorU8(0, 0, 0, 0);           // ã‚¹ãƒšã‚­ãƒ¥ãƒ©
 
-        // UVÀ•Wİ’èiƒeƒNƒXƒ`ƒƒ“\‚è•t‚¯j
+        // UVåº§æ¨™è¨­å®šï¼ˆãƒ†ã‚¯ã‚¹ãƒãƒ£è²¼ã‚Šä»˜ã‘ï¼‰
         v[i].u = (i == 1 || i == 2 || i == 4) ? 1.0f : 0.0f;
         v[i].v = (i == 2 || i == 3 || i == 4) ? 1.0f : 0.0f;
     }
 
-    DrawPolygon3D(v, 2, tex, TRUE); // lŠpŒ`•`‰æ
+    DrawPolygon3D(v, 2, tex, TRUE); // å››è§’å½¢æç”»
 }
