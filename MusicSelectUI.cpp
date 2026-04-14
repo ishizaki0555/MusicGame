@@ -3,16 +3,20 @@
 #include <DxLib.h>
 #include <codecvt> 
 #include <locale>
+#include <algorithm>
+#include <cmath>
+
+#define NOMINMAX
 #include <windows.h>
 
 MusicSelectUI::MusicSelectUI(const fs::path& folder)
     : folderPath(folder)
     , longPressValue(50)
 {
-    // ŒğŠ·‰¹‚Ìæ“¾
+    // äº¤æ›éŸ³ã®å–å¾—
     selectSE = LoadSoundMem("Sounds/select.mp3");
 
-    // ƒŠƒUƒ‹ƒg‰æ–Ê‚ÌBGM‚ğæ“¾
+    // ãƒªã‚¶ãƒ«ãƒˆç”»é¢ã®BGMã‚’å–å¾—
     bgmHandle = LoadSoundMem("Sounds/select.wav");
 }
 
@@ -25,11 +29,6 @@ void MusicSelectUI::LoadFont(const std::string& fontPath, int size)
     fontHandleSmall = CreateFontToHandle(fontPath.c_str(), size, 3);
     fontHandleLarge = CreateFontToHandle(fontPath.c_str(), size + 12, 3);
 
-    fontTable[0] = fontHandleSmall;
-    fontTable[1] = fontHandleSmall;
-    fontTable[2] = fontHandleLarge;
-    fontTable[3] = fontHandleSmall;
-    fontTable[4] = fontHandleSmall;
 }
 
 void MusicSelectUI::LoadMusicList()
@@ -94,17 +93,17 @@ void MusicSelectUI::DrawBoxEx(int x, int y, int w, int h, int r, int g, int b, i
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }
 
-// @brief UTF-8‚Ì•¶š—ñ‚ğShift-JIS‚É•ÏŠ·‚µ‚Ü‚·
-// @param utf8 UTF-8‚ÅƒGƒ“ƒR[ƒh‚³‚ê‚½•¶š—ñ
-// @return Shift-8‚ÅƒGƒ“ƒR[ƒh‚³‚ê‚½•¶š—ñ
+// @brief UTF-8ã®æ–‡å­—åˆ—ã‚’Shift-JISã«å¤‰æ›ã—ã¾ã™
+// @param utf8 UTF-8ã§ã‚¨ãƒ³ã‚³ãƒ¼ãƒ‰ã•ã‚ŒãŸæ–‡å­—åˆ—
+// @return Shift-8ã§ã‚¨ãƒ³ã‚³ãƒ¼ãƒ‰ã•ã‚ŒãŸæ–‡å­—åˆ—
 std::string Utf8ToSjis(const std::string& utf8)
 {
-    // UTF-8‚ğUTF-16‚É•ÏŠ·‚·‚é
+    // UTF-8ã‚’UTF-16ã«å¤‰æ›ã™ã‚‹
     int wlen = MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, nullptr, 0);
     std::wstring wstr(wlen, 0);
     MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, &wstr[0], wlen);
 
-    // UTF-16‚ğShift-JIS‚É•ÏŠ·‚·‚é
+    // UTF-16ã‚’Shift-JISã«å¤‰æ›ã™ã‚‹
     int len = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
     std::string sjis(len, 0);
     WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, &sjis[0], len, nullptr, nullptr);
@@ -159,7 +158,7 @@ void MusicSelectUI::DrawTextLeftSlide(
 
         drawX = leftX - offset;
 
-        // ƒ‹[ƒv—p‚Ì2‚Â–Ú
+        // ãƒ«ãƒ¼ãƒ—ç”¨ã®2ã¤ç›®
         DrawStringToHandle(drawX + loopWidth, y, sjis.c_str(), color, font);
     }
 
@@ -182,16 +181,16 @@ void MusicSelectUI::DrawTextLeftClip(
     std::string sjis = Utf8ToSjis(text);
     int textWidth = GetDrawStringWidthToHandle(sjis.c_str(), sjis.size(), font);
 
-    // ƒNƒŠƒbƒsƒ“ƒO”ÍˆÍiƒo[‚Ì•j
+    // ã‚¯ãƒªãƒƒãƒ”ãƒ³ã‚°ç¯„å›²ï¼ˆãƒãƒ¼ã®å¹…ï¼‰
     int clipX1 = leftX;
     int clipX2 = leftX + barWidth;
 
     SetDrawArea(clipX1, y - 5, clipX2, y + 50);
 
-    // ¶‘µ‚¦
+    // å·¦æƒãˆ
     DrawStringToHandle(leftX, y, sjis.c_str(), color, font);
 
-    // ƒNƒŠƒbƒsƒ“ƒO‰ğœ
+    // ã‚¯ãƒªãƒƒãƒ”ãƒ³ã‚°è§£é™¤
     SetDrawAreaFull();
 }
 
@@ -208,9 +207,9 @@ void MusicSelectUI::GetDifficultyColor(Difficulty diff, int& r, int& g, int& b)
 
 void MusicSelectUI::Update()
 {
-    // ƒXƒNƒ[ƒ‹§Œä
-    const int WAIT_TIME = 120;      // –ñ2•bi60FPS‘z’èj
-    const int SCROLL_SPEED = 1;     // ƒXƒNƒ[ƒ‹‘¬“x
+    // ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«åˆ¶å¾¡
+    const int WAIT_TIME = 120;      // ç´„2ç§’ï¼ˆ60FPSæƒ³å®šï¼‰
+    const int SCROLL_SPEED = 1;     // ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«é€Ÿåº¦
 
     if (!sceneStarted)
     {
@@ -235,7 +234,7 @@ void MusicSelectUI::Update()
     case ScrollState::Scroll:
         titleScroll += SCROLL_SPEED;
 
-        // ƒ‹[ƒv•iDrawTextLeftSlide ‚Æ‡‚í‚¹‚éj
+        // ãƒ«ãƒ¼ãƒ—å¹…ï¼ˆDrawTextLeftSlide ã¨åˆã‚ã›ã‚‹ï¼‰
         {
             int textWidth = GetDrawStringWidthToHandle(
                 Utf8ToSjis(musicList[selectedIndex].title).c_str(),
@@ -245,7 +244,7 @@ void MusicSelectUI::Update()
 
             int loopWidth = textWidth + 60;
 
-            // 1ƒ‹[ƒvI‚í‚Á‚½‚ç’â~‚Ö
+            // 1ãƒ«ãƒ¼ãƒ—çµ‚ã‚ã£ãŸã‚‰åœæ­¢ã¸
             if (titleScroll >= loopWidth)
             {
                 titleScroll = 0;
@@ -266,7 +265,7 @@ void MusicSelectUI::Update()
 
     int mouse = GetMouseInput();
 
-    // Šy‹ÈXV
+    // æ¥½æ›²æ›´æ–°
     static int upTimer = 0;
     static int downTimer = 0;
     static int wTimer = 0;
@@ -302,7 +301,7 @@ void MusicSelectUI::Update()
     else downTimer = 0;
 
 
-    // “ïˆÕ“x‘I‘ğ
+    // é›£æ˜“åº¦é¸æŠ
     static int leftTimer = 0;
     static int rightTimer = 0;
     static int qTimer = 0;
@@ -315,8 +314,8 @@ void MusicSelectUI::Update()
 
     int diffIndex = (int)selectedDifficulty;
 
-    // ƒL[ƒ{[ƒh“ü—Í‚©‚ç“ïˆÕ“x‚ğ•ÏX
-    // QƒL[‚©¶–îˆó
+    // ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰å…¥åŠ›ã‹ã‚‰é›£æ˜“åº¦ã‚’å¤‰æ›´
+    // Qã‚­ãƒ¼ã‹å·¦çŸ¢å°
     if (left || keyQ)
     {
         int& t = left ? leftTimer : qTimer;
@@ -334,7 +333,7 @@ void MusicSelectUI::Update()
         qTimer = 0;
     }
 
-    // EƒL[‚©‰E–îˆó
+    // Eã‚­ãƒ¼ã‹å³çŸ¢å°
     if (right || keyE)
     {
         int& t = right ? rightTimer : eTimer;
@@ -355,21 +354,21 @@ void MusicSelectUI::Update()
 
     selectedDifficulty = (Difficulty)diffIndex;
 
-    // Œˆ’èƒL[‚ÌŒ»İó‘Ô
+    // æ±ºå®šã‚­ãƒ¼ã®ç¾åœ¨çŠ¶æ…‹
     bool nowEnter = (CheckHitKey(KEY_INPUT_RETURN) != 0);
     bool nowSpace = (CheckHitKey(KEY_INPUT_SPACE) != 0);
 
-    // ‰Ÿ‚µ‚½uŠÔ‚¾‚¯ true ‚É‚È‚é
+    // æŠ¼ã—ãŸç¬é–“ã ã‘ true ã«ãªã‚‹
     bool enterDown = (nowEnter && !prevEnter);
     bool spaceDown = (nowSpace && !prevSpace);
 
-    // ŸƒtƒŒ[ƒ€‚Ì‚½‚ß‚É•Û‘¶
+    // æ¬¡ãƒ•ãƒ¬ãƒ¼ãƒ ã®ãŸã‚ã«ä¿å­˜
     prevEnter = nowEnter;
     prevSpace = nowSpace;
 
     bool decide = (enterDown || spaceDown);
 
-    //‘I‹È‚ÌŒˆ’èˆ—
+    //é¸æ›²ã®æ±ºå®šå‡¦ç†
     if (decide)
     {
         StopSoundMem(bgmHandle);
@@ -399,6 +398,18 @@ void MusicSelectUI::Update()
             }
         }
     }
+    if (!musicList.empty())
+    {
+        float diff = selectedIndex - currentViewIndex;
+        float halfSize = musicList.size() / 2.0f;
+        while (diff > halfSize) diff -= musicList.size();
+        while (diff < -halfSize) diff += musicList.size();
+
+        currentViewIndex += diff * 0.15f; 
+
+        if (currentViewIndex < 0.0f) currentViewIndex += musicList.size();
+        if (currentViewIndex >= musicList.size()) currentViewIndex -= musicList.size();
+    }
 }
 void MusicSelectUI::Draw()
 {
@@ -408,7 +419,7 @@ void MusicSelectUI::Draw()
 
     if (info.bannerHandle != -1)
     {
-        // ‰æ–ÊƒTƒCƒY‚É‡‚í‚¹‚Äƒoƒi[‚ğˆø‚«L‚Î‚·
+        // ç”»é¢ã‚µã‚¤ã‚ºã«åˆã‚ã›ã¦ãƒãƒŠãƒ¼ã‚’å¼•ãä¼¸ã°ã™
         DrawExtendGraph(
             0, 0,
             1280, 720,
@@ -417,70 +428,81 @@ void MusicSelectUI::Draw()
         );
     }
 
-    // ‚Ú‚©‚µ•—‚É‚·‚é‚½‚ß‚Ì”¼“§–¾•
+    // ã¼ã‹ã—é¢¨ã«ã™ã‚‹ãŸã‚ã®åŠé€æ˜é»’
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
     DrawBox(0, 0, 1280, 720, GetColor(0, 0, 0), TRUE);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     // ============================
-    // ¶‘¤F”wŒiƒ{ƒbƒNƒX
+    // å·¦å´ï¼šèƒŒæ™¯ãƒœãƒƒã‚¯ã‚¹
     // ============================
     int leftBoxX = 80;
     int leftBoxY = 140;
     int leftBoxW = 350;
     int leftBoxH = 500;
 
-    // ’†‰›X
+    // ä¸­å¤®X
     int centerX = leftBoxX + leftBoxW / 2 + 50;
 
-    // sŠÔ
+    // è¡Œé–“
     int leftY = leftBoxY + 180;
     int row = 55;
 
-    // ƒCƒ“ƒfƒbƒNƒX
-    int prev2 = (selectedIndex - 2 + musicList.size()) % musicList.size();
-    int prev1 = (selectedIndex - 1 + musicList.size()) % musicList.size();
-    int now = selectedIndex;
-    int next1 = (selectedIndex + 1) % musicList.size();
-    int next2 = (selectedIndex + 2) % musicList.size();
+    // ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
+    int baseY = leftBoxY + 150;
 
-    // ’†‰›•â³i‘åƒtƒHƒ“ƒgj
-    int centerOffset = 10;
+    int centerIdx = (int)std::floor(currentViewIndex);
 
-    int baseY = leftBoxY + 150;   // ’†‰›‚ÌŠî€ˆÊ’u
-
-    int indices[5] = { prev2, prev1, now, next1, next2 };
-
-    for (int i = 0; i < 5; i++)
+    for (int i = -3; i <= 4; i++)
     {
-        int idx = indices[i];
-        int font = fontTable[i];
-        float y = baseY + posTable[i];
+        long long virtualIdx = (long long)centerIdx + i;
+        int idx = (virtualIdx % (long long)musicList.size() + musicList.size()) % musicList.size();
 
-        // ”wŒiƒ{ƒbƒNƒXi‹È‚²‚Æ‚É“Æ—§j
-        int boxW = (font == fontHandleLarge) ? 500 : 350;
-        int boxH = (font == fontHandleLarge) ? 70 : 50;  // ’†‰›‚¾‚¯‘å‚«‚¢
+        float dist = (float)virtualIdx - currentViewIndex;
+        float focus = std::max(0.0f, 1.0f - std::abs(dist));
+
+        float baseSpacing = 70.0f;
+        float yOffset = dist * baseSpacing;
+
+        float easeDist = std::min(std::abs(dist), 1.0f);
+        if (dist > 0.0f) {
+            yOffset += 10.0f * easeDist;
+        } else if (dist < 0.0f) {
+            yOffset -= 10.0f * easeDist;
+        }
+
+        float finalY = baseY + yOffset;
+
+        if (finalY < leftBoxY - 50 || finalY > leftBoxY + leftBoxH + 50) continue;
+
+        int boxW = 350 + (int)(150.0f * focus);
+        int boxH = 50 + (int)(20.0f * focus);
         int boxX = centerX - boxW / 2;
-        int boxY = y - boxH / 2;
+        int boxY = (int)finalY - boxH / 2;
 
-        // Fi’†‰›‚¾‚¯”Z‚­‚·‚é‚È‚Ç‚à‰Â”\j
-        int r = (i == 2) ? 200 : 180;
-        int g = (i == 2) ? 200 : 180;
-        int b = (i == 2) ? 255 : 220;
+        int r = (int)(180.0f + 20.0f * focus);
+        int g = (int)(180.0f + 20.0f * focus);
+        int b = (int)(220.0f + 35.0f * focus);
         int a = 255;
+
+        if (std::abs(dist) > 2.0f) {
+            a = (int)(255.0f - (std::abs(dist) - 2.0f) * 128.0f);
+            if (a < 0) a = 0;
+            if (a > 255) a = 255;
+        }
 
         DrawBoxEx(boxX, boxY, boxW, boxH, r, g, b, a);
 
-        int barWidth = (font == fontHandleLarge) ? 460 : 300;
+        int font = (focus > 0.5f) ? fontHandleLarge : fontHandleSmall;
+        int barWidth = 300 + (int)(160.0f * focus); 
         int leftX = centerX - barWidth / 2;
 
-        if (i == 2)
+        if (idx == selectedIndex && std::abs(dist) < 0.1f) 
         {
-            // ‘I‘ğ’†‚¾‚¯ƒXƒNƒ[ƒ‹
             DrawTextLeftSlide(
                 musicList[idx].title,
                 leftX,
-                y - 10,
+                (int)finalY - 10,
                 barWidth,
                 GetColor(0, 0, 0),
                 font
@@ -488,11 +510,10 @@ void MusicSelectUI::Draw()
         }
         else
         {
-            // ”ñ‘I‘ğ‚Í¶‘µ‚¦{ƒNƒŠƒbƒsƒ“ƒO‚Ì‚İ
             DrawTextLeftClip(
                 musicList[idx].title,
                 leftX,
-                y - 10,
+                (int)finalY - 10,
                 barWidth,
                 GetColor(0, 0, 0),
                 font
@@ -500,16 +521,15 @@ void MusicSelectUI::Draw()
         }
     }
 
-
     // ============================
-    // ‰E‘¤F‹È–¼i‘å‚«‚­j
+    // å³å´ï¼šæ›²åï¼ˆå¤§ããï¼‰
     // ============================
     int mainX = 600;
 
     DrawTextEx(info.title, mainX, 40, GetColor(255, 255, 255), fontHandleSmall);
 
     // ============================
-    // ƒoƒi[
+    // ãƒãƒŠãƒ¼
     // ============================
     int bannerY = 120;
     int bannerW = 500;
@@ -528,12 +548,12 @@ void MusicSelectUI::Draw()
     }
 
     // ============================
-    // ‹Èî•ñiBPM‚È‚Çj
+    // æ›²æƒ…å ±ï¼ˆBPMãªã©ï¼‰
     // ============================
     DrawTextEx("BPM: " + std::to_string(info.bpm), mainX, bannerY + bannerH + 20, GetColor(255, 255, 255), fontHandleSmall);
 
     // ============================
-    // “ïˆÕ“xƒ{ƒ^ƒ“
+    // é›£æ˜“åº¦ãƒœã‚¿ãƒ³
     // ============================
     int diffY = bannerY + bannerH + 80;
     int diffW = 140;
@@ -559,7 +579,7 @@ void MusicSelectUI::Draw()
     }
 
     // ============================
-    // PLAY ƒ{ƒ^ƒ“
+    // PLAY ãƒœã‚¿ãƒ³
     // ============================
     int playY = diffY + 100;
     int playW = 200;
@@ -574,3 +594,4 @@ void MusicSelectUI::ResetInputState()
     prevEnter = (CheckHitKey(KEY_INPUT_RETURN) != 0);
     prevSpace = (CheckHitKey(KEY_INPUT_SPACE) != 0);
 }
+

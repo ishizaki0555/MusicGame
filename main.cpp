@@ -26,9 +26,16 @@ enum class SceneType
     RESULT_SCENE     // リザルト画面
 };
 
-SceneType currentScene = SceneType::TITLE_SCENE;   // 現在のシーン
+SceneType currentScene = SceneType::TITLE_SCENE;
 
-// エントリーポイント
+enum class TransitionState {
+    None,
+    FadeIn,
+    FadeOut
+};
+TransitionState transState = TransitionState::None;
+float transProgress = 0.0f;
+SceneType nextSceneType = SceneType::TITLE_SCENE;
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
     // ウィンドウの名前を設定
@@ -64,96 +71,119 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     // メインループ
     while (ProcessMessage() == 0)
     {
-        // 画面クリア
         ClearDrawScreen();
 
-        // 現在のシーンに応じて処理
         switch (currentScene)
         {
-            // タイトルシーン処理
             case SceneType::TITLE_SCENE:            
                 title->Update();
                 title->Draw();
-
-                // タイトルから進むか判定
-                if (title->goNext)
-                {
-                    // タイトルBGM停止
-                    StopSoundMem(title->bgm);
-
-                    selectUI.LoadFont("Fonts/BIZ-UDMinchoM.ttc", 32);
-                    selectUI.LoadMusicList();
-                    // 選曲へ遷移
-                    currentScene = SceneType::SELECT_SCENE;
+                if (transState == TransitionState::None && title->goNext) {
+                    nextSceneType = SceneType::SELECT_SCENE;
+                    transState = TransitionState::FadeIn;
                 }
                 break;
 
-            // 選曲シーン処理
             case SceneType::SELECT_SCENE:
                 selectUI.Update();
                 selectUI.Draw();
-
-                // ゲームシーンが生成されたか判定
-                if (selectUI.createdScene != nullptr)
-                {
-                    // 生成されたゲームシーンを受け取る
-                    game = selectUI.createdScene;
-                    selectUI.createdScene = nullptr;
-                    // ゲームへ遷移
-                    currentScene = SceneType::GAME_SCENE;
+                if (transState == TransitionState::None && selectUI.createdScene != nullptr) {
+                    nextSceneType = SceneType::GAME_SCENE;
+                    transState = TransitionState::FadeIn;
                 }
                 break;
 
-            // ゲームシーン処理
             case SceneType::GAME_SCENE:
-                game->Update();
-                game->Draw();
-
-                // ゲーム終了判定
-                if (game->IsFinished())
-                {
-                    result = new ResultScene(
-                        game->GetScore(),
-                        game->GetMaxCombo(),
-                        game->GetPerfect(),
-                        game->GetGreat(),
-                        game->GetGood(),
-                        game->GetMiss(),
-                        game->GetSongName(),
-                        game->GetBannerHandle()
-                    );
-
-                    // ゲームシーン破棄
-                    delete game;
-                    game = nullptr;
-                        
-                    // リザルトへ遷移
-                    currentScene = SceneType::RESULT_SCENE;
+                if (game) {
+                    game->Update();
+                    game->Draw();
+                    if (transState == TransitionState::None && game->IsFinished()) {
+                        nextSceneType = SceneType::RESULT_SCENE;
+                        transState = TransitionState::FadeIn;
+                    }
                 }
                 break;
 
-            // リザルトシーン処理
             case SceneType::RESULT_SCENE:
-                result->Update();
-                result->Draw();
-    
-                // リザルトから戻るか判定
-                if (result->goNext)
-                {
-                    // リザルト破棄
-                    delete result;
-                    result = nullptr;
-
-                    // キーの状態をリセット
-                    selectUI.sceneStarted = false;
-                    selectUI.ResetInputState();
-
-                    currentScene = SceneType::SELECT_SCENE; // 選曲へ戻る
+                if (result) {
+                    result->Update();
+                    result->Draw();
+                    if (transState == TransitionState::None && result->goNext) {
+                        nextSceneType = SceneType::SELECT_SCENE;
+                        transState = TransitionState::FadeIn;
+                    }
                 }
                 break;
         }
 
-        // 画面反映
+        if (transState == TransitionState::FadeIn)
+        {
+            transProgress += 0.04f;
+            if (transProgress >= 1.0f)
+            {
+                transProgress = 1.0f;
+
+                if (currentScene == SceneType::TITLE_SCENE && nextSceneType == SceneType::SELECT_SCENE) 
+                {
+                    StopSoundMem(title->bgm);
+                    selectUI.LoadFont("Fonts/BIZ-UDMinchoM.ttc", 32);
+                    selectUI.LoadMusicList();
+                }
+                else if (currentScene == SceneType::SELECT_SCENE && nextSceneType == SceneType::GAME_SCENE) 
+                {
+                    game = selectUI.createdScene;
+                    selectUI.createdScene = nullptr;
+                }
+                else if (currentScene == SceneType::GAME_SCENE && nextSceneType == SceneType::RESULT_SCENE) 
+                {
+                    result = new ResultScene(
+                        game->GetScore(), game->GetMaxCombo(), game->GetPerfect(),
+                        game->GetGreat(), game->GetGood(), game->GetMiss(),
+                        game->GetSongName(), game->GetBannerHandle()
+                    );
+                    delete game;
+                    game = nullptr;
+                }
+                else if (currentScene == SceneType::RESULT_SCENE && nextSceneType == SceneType::SELECT_SCENE) 
+                {
+                    delete result;
+                    result = nullptr;
+                    selectUI.sceneStarted = false;
+                    selectUI.ResetInputState();
+                }
+                
+                currentScene = nextSceneType;
+                transState = TransitionState::FadeOut;
+            }
+        }
+        else if (transState == TransitionState::FadeOut)
+        {
+            transProgress -= 0.04f;
+            if (transProgress <= 0.0f)
+            {
+                transProgress = 0.0f;
+                transState = TransitionState::None;
+            }
+        }
+
+        if (transState != TransitionState::None)
+        {
+            int w = 1280;
+            int h = 720;
+            SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+            if (transState == TransitionState::FadeIn)
+            {
+                int fillX = (int)(w * (1.0f - transProgress));
+                DrawBox(fillX, 0, w, h, GetColor(0, 0, 0), TRUE);
+            }
+            else if (transState == TransitionState::FadeOut)
+            {
+                int rightX = (int)(w * transProgress);
+                DrawBox(0, 0, rightX, h, GetColor(0, 0, 0), TRUE);
+            }
+            SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+        }
+
         ScreenFlip();
     }
 
@@ -161,3 +191,4 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     DxLib_End();
     return 0;
 }
+

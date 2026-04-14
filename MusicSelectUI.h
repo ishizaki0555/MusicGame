@@ -12,11 +12,19 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <math.h>
 #include <map>
 #include <filesystem>
 #include <DxLib.h>
 #include "GameScene.h"
 #include "JsonLoader.h"
+
+#ifdef max
+#undef max
+#endif
+#ifdef min
+#undef min
+#endif
 
 namespace fs = std::filesystem;
 
@@ -173,6 +181,7 @@ private:
 		fontHandleSmall     // さらに次の曲
     };
 
+    float currentViewIndex = 0.0f;
     int selectedIndex = 0;                              // 選曲中のインデックス
     Difficulty selectedDifficulty = Difficulty::Easy;   // 選択中の難易度
 
