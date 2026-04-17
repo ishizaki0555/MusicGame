@@ -5,48 +5,50 @@
 // ========================================
 // 
 // TitleScene.h
-// ƒ^ƒCƒgƒ‹‰æ–Ê‚Ì‹@”\‚ğ’ñ‹Ÿ‚µ‚Ü‚·B
+// ã‚¿ã‚¤ãƒˆãƒ«ç”»é¢ã®æ©Ÿèƒ½ã‚’æä¾›ã—ã¾ã™ã€‚
 // 
 //========================================
 
 #pragma once
 #include <DxLib.h>
 
-// ƒ^ƒCƒgƒ‹ƒV[ƒ“‚ÌƒNƒ‰ƒX
+// ã‚¿ã‚¤ãƒˆãƒ«ã‚·ãƒ¼ãƒ³ã®ã‚¯ãƒ©ã‚¹
 class TitleScene
 {
 public:
 
-    // @brief ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+    // @brief ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
     TitleScene();
 
-    // @brief ƒfƒXƒgƒ‰ƒNƒ^
+    // @brief ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
     ~TitleScene();
 
-    // @brief XV‚µ‚Ü‚·
+    // @brief æ›´æ–°ã—ã¾ã™
     void Update();
 
-    // @brief •`‰æ‚µ‚Ü‚·
+    // @brief æç”»ã—ã¾ã™
     void Draw();
 
-    bool goNext = false;    // ENTER‚ÅŸ‚Ö
-    int bgm = -1;           // BGMƒnƒ“ƒhƒ‹
+    bool goNext = false;    // ENTERã§æ¬¡ã¸
+    int bgm = -1;           // BGMãƒãƒ³ãƒ‰ãƒ«
 
 private:
 
-    // ƒp[ƒeƒBƒNƒ‹ŠÖ˜A
-    static const int PARTICLE_MAX = 60;     // ƒp[ƒeƒBƒNƒ‹‚ÌÅ‘å”
-    int menuIndex = 0;                      // ƒƒjƒ…[‚Ì‘I‘ğƒCƒ“ƒfƒbƒNƒX
+    // ãƒ‘ãƒ¼ãƒ†ã‚£ã‚¯ãƒ«é–¢é€£
+    static const int PARTICLE_MAX = 60;     // ãƒ‘ãƒ¼ãƒ†ã‚£ã‚¯ãƒ«ã®æœ€å¤§æ•°
+    int menuIndex = 0;                      // ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®é¸æŠã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
+    int titleFontLarge = -1;
+    int titleFontSmall = -1;
     
-    // ƒp[ƒeƒBƒNƒ‹‚Ì\‘¢‘Ì
+    // ãƒ‘ãƒ¼ãƒ†ã‚£ã‚¯ãƒ«ã®æ§‹é€ ä½“
     struct Particle {
-        float x;        // XÀ•W
-        float y;        // YÀ•W
-        float speed;    // —‰º‘fs“x
+        float x;        // Xåº§æ¨™
+        float y;        // Yåº§æ¨™
+        float speed;    // è½ä¸‹ç´ è¡Œåº¦
     };
-    Particle particles[PARTICLE_MAX];       // ƒp[ƒeƒBƒNƒ‹‚Ì”z—ñ
+    Particle particles[PARTICLE_MAX];       // ãƒ‘ãƒ¼ãƒ†ã‚£ã‚¯ãƒ«ã®é…åˆ—
 
-    float logoScale = 1.0f;                 // ƒƒS‚ÌŠg‘å—¦
-	float bandOffset = 0.0f;			    // ƒoƒ“ƒh‚ÌƒIƒtƒZƒbƒg  
-    int pressAlpha = 255;                   // PressEnter‚ÌƒAƒ‹ƒtƒ@’l
+    float logoScale = 1.0f;                 // ãƒ­ã‚´ã®æ‹¡å¤§ç‡
+	float bandOffset = 0.0f;			    // ãƒãƒ³ãƒ‰ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ  
+    int pressAlpha = 255;                   // PressEnterã®ã‚¢ãƒ«ãƒ•ã‚¡å€¤
 };

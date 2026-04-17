@@ -263,6 +263,22 @@ void MusicSelectUI::Update()
         break;
     }
 
+    // オートプレイのトグル
+    static int tabTimer = 0;
+    if (CheckHitKey(KEY_INPUT_TAB))
+    {
+        if (tabTimer == 0)
+        {
+            PlaySoundMem(selectSE, DX_PLAYTYPE_BACK);
+            isAutoPlay = !isAutoPlay;
+        }
+        tabTimer++;
+    }
+    else
+    {
+        tabTimer = 0;
+    }
+
     int mouse = GetMouseInput();
 
     // 楽曲更新
@@ -394,7 +410,7 @@ void MusicSelectUI::Update()
                 data.musicPath = (folderPath / fs::u8path(info.folder) / info.file).string();
                 data.folderPath = (folderPath / fs::u8path(info.folder)).string();
 
-                createdScene = new GameScene(data, info.bannerHandle);
+                createdScene = new GameScene(data, info.bannerHandle, isAutoPlay);
             }
         }
     }
@@ -587,6 +603,11 @@ void MusicSelectUI::Draw()
 
     DrawBoxEx(mainX, playY, playW, playH, 80, 150, 255, 255);
     DrawTextEx("PLAY", mainX + 60, playY + 20, GetColor(0, 0, 0), fontHandleSmall);
+
+    // オートプレイの状態表示を追加
+    std::string autoPlayText = "AUTO PLAY: " + std::string(isAutoPlay ? "ON" : "OFF") + " (Press TAB to toggle)";
+    int apColor = isAutoPlay ? GetColor(255, 100, 100) : GetColor(255, 255, 255);
+    DrawTextEx(autoPlayText, mainX, playY + 80, apColor, fontHandleSmall);
 }
 
 void MusicSelectUI::ResetInputState()

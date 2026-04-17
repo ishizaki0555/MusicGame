@@ -5,8 +5,8 @@
 // ========================================
 // 
 // main.cpp
-// É^ÉCÉgÉã Å® ëIã» Å® ÉQÅ[ÉÄ Å® ÉäÉUÉãÉg ÇÃäeÉVÅ[ÉìÇä«óùÇµÅA
-// ÉAÉvÉäÉPÅ[ÉVÉáÉìëSëÃÇÃÉãÅ[ÉvÇ∆ÉVÅ[ÉìëJà⁄Çêßå‰ÇµÇ‹Ç∑ÅB
+// „Çø„Ç§„Éà„É´ ‚Üí ÈÅ∏Êõ≤ ‚Üí „Ç≤„Éº„É† ‚Üí „É™„Ç∂„É´„Éà „ÅÆÂêÑ„Ç∑„Éº„É≥„ÇíÁÆ°ÁêÜ„Åó„ÄÅ
+// „Ç¢„Éó„É™„Ç±„Éº„Ç∑„Éß„É≥ÂÖ®‰Ωì„ÅÆ„É´„Éº„Éó„Å®„Ç∑„Éº„É≥ÈÅ∑Áßª„ÇíÂà∂Âæ°„Åó„Åæ„Åô„ÄÇ
 // 
 //========================================
 
@@ -17,13 +17,13 @@
 #include "GameScene.h"
 #include "ResultScene.h"
 
-// ÉVÅ[ÉìÇÃéÌóﬁ
+// „Ç∑„Éº„É≥„ÅÆÁ®ÆÈ°û
 enum class SceneType
 {
-    TITLE_SCENE,     // É^ÉCÉgÉãâÊñ 
-    SELECT_SCENE,    // ëIã»âÊñ 
-    GAME_SCENE,      // ÉQÅ[ÉÄÉvÉåÉC
-    RESULT_SCENE     // ÉäÉUÉãÉgâÊñ 
+    TITLE_SCENE,     // „Çø„Ç§„Éà„É´ÁîªÈù¢
+    SELECT_SCENE,    // ÈÅ∏Êõ≤ÁîªÈù¢
+    GAME_SCENE,      // „Ç≤„Éº„É†„Éó„É¨„Ç§
+    RESULT_SCENE     // „É™„Ç∂„É´„ÉàÁîªÈù¢
 };
 
 SceneType currentScene = SceneType::TITLE_SCENE;
@@ -38,37 +38,37 @@ float transProgress = 0.0f;
 SceneType nextSceneType = SceneType::TITLE_SCENE;
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-    // ÉEÉBÉìÉhÉEÇÃñºëOÇê›íË
+    // „Ç¶„Ç£„É≥„Éâ„Ç¶„ÅÆÂêçÂâç„ÇíË®≠ÂÆö
     SetMainWindowText("MusicGame");
 
-    // DXLib èâä˙ê›íË
-    SetGraphMode(1280, 720, 32, 60);     // âÊñ ÉTÉCÉYê›íË
-    ChangeWindowMode(TRUE);              // ÉEÉBÉìÉhÉEÉÇÅ[Éh
+    // DXLib ÂàùÊúüË®≠ÂÆö
+    SetGraphMode(1280, 720, 32, 60);     // ÁîªÈù¢„Çµ„Ç§„Ç∫Ë®≠ÂÆö
+    ChangeWindowMode(TRUE);              // „Ç¶„Ç£„É≥„Éâ„Ç¶„É¢„Éº„Éâ
 
-    SetUseZBuffer3D(TRUE);               // ZÉoÉbÉtÉ@égóp
-    SetWriteZBuffer3D(TRUE);             // ZÉoÉbÉtÉ@èëÇ´çûÇ›
+    SetUseZBuffer3D(TRUE);               // Z„Éê„ÉÉ„Éï„Ç°‰ΩøÁî®
+    SetWriteZBuffer3D(TRUE);             // Z„Éê„ÉÉ„Éï„Ç°Êõ∏„ÅçËæº„Åø
 
-    if (DxLib_Init() == -1) return -1;   // DXLib èâä˙âª
-    SetDrawScreen(DX_SCREEN_BACK);       // ó†âÊñ Ç…ï`âÊ
+    if (DxLib_Init() == -1) return -1;   // DXLib ÂàùÊúüÂåñ
+    SetDrawScreen(DX_SCREEN_BACK);       // Ë£èÁîªÈù¢„Å´ÊèèÁîª
 
-    // ImGuiÇÃèâä˙âª
+    // ImGui„ÅÆÂàùÊúüÂåñ
 
 
-    // É^ÉCÉgÉãÉVÅ[Éìê∂ê¨
+    // „Çø„Ç§„Éà„É´„Ç∑„Éº„É≥ÁîüÊàê
     TitleScene* title = new TitleScene();
-    // ëIã»UIê∂ê¨
+    // ÈÅ∏Êõ≤UIÁîüÊàê
     MusicSelectUI selectUI("Musics");
-    // ÉtÉHÉìÉgì«Ç›çûÇ›
+    // „Éï„Ç©„É≥„ÉàË™≠„ÅøËæº„Åø
     selectUI.LoadFont("Fonts/BIZ-UDMinchoM.ttc", 32);
-    // äyã»ÉäÉXÉgì«Ç›çûÇ›
+    // Ê•ΩÊõ≤„É™„Çπ„ÉàË™≠„ÅøËæº„Åø
     selectUI.LoadMusicList();
 
-    // ÉQÅ[ÉÄÉVÅ[Éì
+    // „Ç≤„Éº„É†„Ç∑„Éº„É≥
     GameScene* game = nullptr;
-    // ÉäÉUÉãÉgÉVÅ[Éì
+    // „É™„Ç∂„É´„Éà„Ç∑„Éº„É≥
     ResultScene* result = nullptr;
 
-    // ÉÅÉCÉìÉãÅ[Év
+    // „É°„Ç§„É≥„É´„Éº„Éó
     while (ProcessMessage() == 0)
     {
         ClearDrawScreen();
@@ -97,9 +97,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                 if (game) {
                     game->Update();
                     game->Draw();
-                    if (transState == TransitionState::None && game->IsFinished()) {
-                        nextSceneType = SceneType::RESULT_SCENE;
-                        transState = TransitionState::FadeIn;
+                    if (transState == TransitionState::None) {
+                        if (game->IsFinished()) {
+                            nextSceneType = SceneType::RESULT_SCENE;
+                            transState = TransitionState::FadeIn;
+                        } else if (game->IsRetire()) {
+                            nextSceneType = SceneType::SELECT_SCENE;
+                            transState = TransitionState::FadeIn;
+                        } else if (game->IsRetry()) {
+                            nextSceneType = SceneType::GAME_SCENE;
+                            transState = TransitionState::FadeIn;
+                        }
                     }
                 }
                 break;
@@ -134,6 +142,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                     game = selectUI.createdScene;
                     selectUI.createdScene = nullptr;
                 }
+                else if (currentScene == SceneType::GAME_SCENE && nextSceneType == SceneType::GAME_SCENE) 
+                {
+                    GameScene* newGame = new GameScene(game->GetNotesData(), game->GetBannerHandle(), game->GetIsAutoPlay());
+                    delete game;
+                    game = newGame;
+                }
                 else if (currentScene == SceneType::GAME_SCENE && nextSceneType == SceneType::RESULT_SCENE) 
                 {
                     result = new ResultScene(
@@ -144,10 +158,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                     delete game;
                     game = nullptr;
                 }
-                else if (currentScene == SceneType::RESULT_SCENE && nextSceneType == SceneType::SELECT_SCENE) 
+                else if ((currentScene == SceneType::RESULT_SCENE || currentScene == SceneType::GAME_SCENE) && nextSceneType == SceneType::SELECT_SCENE) 
                 {
-                    delete result;
-                    result = nullptr;
+                    if (result) {
+                        delete result;
+                        result = nullptr;
+                    }
+                    if (game) {
+                        delete game;
+                        game = nullptr;
+                    }
                     selectUI.sceneStarted = false;
                     selectUI.ResetInputState();
                 }
@@ -187,7 +207,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
         ScreenFlip();
     }
 
-    // DXLibèIóπèàóù
+    // DXLibÁµÇ‰∫ÜÂá¶ÁêÜ
     DxLib_End();
     return 0;
 }

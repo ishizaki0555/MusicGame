@@ -16,13 +16,15 @@
 // @brief  コンストラクタ
 // @param notesData ノーツデータ
 // @param banner    バナー画像ハンドル
-GameScene::GameScene(const NotesData& notesData, int banner)
+// @param autoPlay  オートプレイフラグ
+GameScene::GameScene(const NotesData& notesData, int banner, bool autoPlay)
     : LANE_TEX(LoadGraph("Texture/LaneTexture.png"))
     , LIGHT_TEX(LoadGraph("Texture/LightTexture.png"))
     , LINE_TEX(LoadGraph("Texture/LineTexture.png"))
     , NOTE_TEX(LoadGraph("Texture/NoteTexture.png"))
     , LONG_NOTE_TEX(LoadGraph("Texture/LongNoteTexture.png"))
 {
+    m_isAutoPlay = autoPlay;
     m_notesData = notesData;                 // ノーツデータ全体を保存
     notes = notesData.judgeNotes;            // ノーツ一覧をコピー
     songName = notesData.title;              // 曲名を保存
@@ -67,6 +69,12 @@ GameScene::GameScene(const NotesData& notesData, int banner)
     // ノーツ消費フラグを初期化
     noteConsumed.resize(notes.size(), 0);
     for (int i = 0; i < 6; i++) nextNoteIndex[i] = 0;
+
+    // ポーズメニュー用フォントの読み込み
+    pauseFontLarge = CreateFontToHandle("Fonts/BIZ-UDMinchoM.ttc", 60, 3);
+    pauseFontSmall = CreateFontToHandle("Fonts/BIZ-UDMinchoM.ttc", 40, 3);
+    fontMusicName = CreateFontToHandle("Fonts/BIZ-UDMinchoM.ttc", 36, 3);
+    judgeFont = CreateFontToHandle("Fonts/BIZ-UDMinchoM.ttc", 48, 3);
 }
 
 // @brief 判定ロジック
@@ -119,6 +127,62 @@ void GameScene::AddJudgeText(int lane, int result, int noteIndex)
 void GameScene::Update()
 {
     // ============================
+    // ポーズ関連処理
+    // ============================
+    bool nowEsc = (CheckHitKey(KEY_INPUT_ESCAPE) != 0);
+    if (nowEsc && !prevEscapeKey) {
+        if (!isPaused && !isResuming && started && !finished) {
+            isPaused = true;
+            pausedTimeMs = GetSoundCurrentTime(musicHandle);
+            StopSoundMem(musicHandle);
+            pauseMenuIndex = 0;
+            prevUpKey = (CheckHitKey(KEY_INPUT_UP) != 0) || (CheckHitKey(KEY_INPUT_W) != 0);
+            prevDownKey = (CheckHitKey(KEY_INPUT_DOWN) != 0) || (CheckHitKey(KEY_INPUT_S) != 0);
+            prevReturnKey = (CheckHitKey(KEY_INPUT_RETURN) != 0) || (CheckHitKey(KEY_INPUT_SPACE) != 0);
+        } else if (isPaused) {
+            isPaused = false;
+            isResuming = true;
+            resumeCountDown = 180;
+        }
+    }
+    prevEscapeKey = nowEsc;
+
+    if (isPaused) {
+        bool nowUp = (CheckHitKey(KEY_INPUT_UP) != 0) || (CheckHitKey(KEY_INPUT_W) != 0);
+        bool nowDown = (CheckHitKey(KEY_INPUT_DOWN) != 0) || (CheckHitKey(KEY_INPUT_S) != 0);
+        bool nowReturn = (CheckHitKey(KEY_INPUT_RETURN) != 0) || (CheckHitKey(KEY_INPUT_SPACE) != 0);
+
+        if (nowUp && !prevUpKey) pauseMenuIndex = (pauseMenuIndex - 1 + 3) % 3;
+        if (nowDown && !prevDownKey) pauseMenuIndex = (pauseMenuIndex + 1) % 3;
+
+        if (nowReturn && !prevReturnKey) {
+            if (pauseMenuIndex == 0) {
+                isPaused = false;
+                isResuming = true;
+                resumeCountDown = 180;
+            } else if (pauseMenuIndex == 1) {
+                isRetry = true;
+            } else if (pauseMenuIndex == 2) {
+                isRetire = true;
+            }
+        }
+        prevUpKey = nowUp;
+        prevDownKey = nowDown;
+        prevReturnKey = nowReturn;
+        return; // ポーズ中はこれ以上ゲームを更新しない
+    }
+
+    if (isResuming) {
+        resumeCountDown--;
+        if (resumeCountDown <= 0) {
+            isResuming = false;
+            SetSoundCurrentTime(pausedTimeMs, musicHandle);
+            PlaySoundMem(musicHandle, DX_PLAYTYPE_BACK);
+        }
+        return; // カウントダウン中も更新しない
+    }
+
+    // ============================
     // カウントダウン処理
     // ============================
     
@@ -156,8 +220,16 @@ void GameScene::Update()
         keyUp[i] = (!nowKey[i] && prevKey[i]);      // キーを離した瞬間
         prevKey[i] = nowKey[i];                     // 前のキーを更新
 
+        // オートプレイ時のキー入力無効化
+        if (m_isAutoPlay)
+        {
+            nowKey[i] = false;
+            keyDown[i] = false;
+            keyUp[i] = false;
+        }
+
         // キーが押されたら
-        if (CheckHitKey(keys[i]))
+        if (CheckHitKey(keys[i]) && !m_isAutoPlay)
             laneFlash[i] = 10;        // レーン発光を開始
         // 発光中なら
         else if (laneFlash[i] > 0)
@@ -185,6 +257,17 @@ void GameScene::Update()
 
         JudgeNote& note = notes[idx];
         float timeLag = fabs(currentTime - note.time);
+
+        // オートプレイでの自動判定
+        if (m_isAutoPlay && currentTime >= note.time)
+        {
+            if (note.type == 1 || note.type == 2)
+                keyDown[lane] = true;
+            else if (note.type == 3)
+                keyUp[lane] = true;
+                
+            laneFlash[lane] = 10;
+        }
 
         // 通常ノーツかロングノーツの始点の場合は押す動作で判定
         if (notes[idx].type == 1 || notes[idx].type == 2)
@@ -303,7 +386,8 @@ void GameScene::DrawCountDown()
     char buf[32];
     sprintf_s(buf, "%d", sec);
 
-    DrawString(600, 300, buf, GetColor(255, 255, 255)); // カウントダウン表示
+    int w = GetDrawStringWidthToHandle(buf, strlen(buf), pauseFontLarge);
+    DrawStringToHandle(640 - w / 2, 300, buf, GetColor(255, 255, 255), pauseFontLarge); // カウントダウン表示
 }
 
 // @brief レーン発光描画
@@ -376,8 +460,9 @@ void GameScene::DrawJudgeText()
 
         jt.timer--;
 
+        int w = GetDrawStringWidthToHandle(text, strlen(text), judgeFont);
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, jt.alpha);
-        DrawString((int)jt.x, (int)jt.y, text, baseColor);
+        DrawStringToHandle((int)jt.x - w / 2, (int)jt.y, text, baseColor, judgeFont);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
@@ -456,11 +541,13 @@ void GameScene::Draw()
         VECTOR screenPos = ConvWorldPosToScreenPos(VGet(x, 0, JUDGE_LINE_Z + 100));
 
         // 画面下部にキーガイドを描画
-        DrawString(
-            (int)screenPos.x - 90,
+        int w = GetDrawStringWidthToHandle(keyNames[i], strlen(keyNames[i]), pauseFontSmall);
+        DrawStringToHandle(
+            (int)screenPos.x - w / 2,
             670,
             keyNames[i],
-            GetColor(255, 255, 255)
+            GetColor(255, 255, 255),
+            pauseFontSmall
         );
     }
 
@@ -574,6 +661,33 @@ void GameScene::Draw()
             );
         }
     }
+
+    // ============================
+    // ポーズ中のUI描画
+    // ============================
+    if (isResuming) {
+        int sec = resumeCountDown / 60 + 1;
+        char buf[32];
+        sprintf_s(buf, "%d", sec);
+        DrawStringToHandle(640 - 15, 300, buf, GetColor(255, 255, 255), pauseFontLarge);
+    }
+    else if (isPaused) {
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
+        DrawBox(0, 0, 1280, 720, GetColor(0, 0, 0), TRUE);
+        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+        int centerX = 640;
+        const char* title = "PAUSE";
+        int tWidth = GetDrawStringWidthToHandle(title, strlen(title), pauseFontLarge);
+        DrawStringToHandle(centerX - tWidth / 2, 200, title, GetColor(255, 255, 255), pauseFontLarge);
+
+        const char* menuItems[3] = { "Cancel", "Retry", "Retire" };
+        for (int i = 0; i < 3; i++) {
+            int mWidth = GetDrawStringWidthToHandle(menuItems[i], strlen(menuItems[i]), pauseFontSmall);
+            int color = (i == pauseMenuIndex) ? GetColor(255, 255, 0) : GetColor(200, 200, 200);
+            DrawStringToHandle(centerX - mWidth / 2, 350 + i * 80, menuItems[i], color, pauseFontSmall);
+        }
+    }
 }
 
 // @brief コンボ数を描画します
@@ -584,7 +698,8 @@ void GameScene::DrawCombo()
     char buf[32];
     sprintf_s(buf, "%d", combo);
 
-    DrawString(1100, 300, buf, GetColor(255, 255, 255)); // コンボ表示
+    int w = GetDrawStringWidthToHandle(buf, strlen(buf), judgeFont);
+    DrawStringToHandle(1200 - w, 300, buf, GetColor(255, 255, 255), judgeFont); // コンボ表示
 }
 
 // @brief スコアを描画します
@@ -593,7 +708,7 @@ void GameScene::DrawScore()
     char buf[32];
     sprintf_s(buf, "%07d", score); // 7桁ゼロ埋め
 
-    DrawString(30, 20, buf, GetColor(255, 255, 255)); // スコア表示
+    DrawStringToHandle(30, 20, buf, GetColor(255, 255, 255), fontMusicName); // スコア表示
 }
 
 // @brief 曲情報を描画します
@@ -601,10 +716,10 @@ void GameScene::DrawSongInfo()
 {
     std::string sjis = Utf8ToSjis(songName);
     // バナー描画
-    DrawExtendGraph(20, 40, 320, 200, GetBannerHandle(), TRUE);
+    DrawExtendGraph(20, 60, 320, 200, GetBannerHandle(), TRUE);
 
     // 曲名表示
-    DrawString(30, 230, sjis.c_str(), GetColor(200, 200, 200));
+    DrawStringToHandle(30, 220, sjis.c_str(), GetColor(200, 200, 200), fontMusicName);
 }
 
 std::string GameScene::Utf8ToSjis(const std::string& utf8)

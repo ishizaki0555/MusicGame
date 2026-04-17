@@ -24,7 +24,8 @@ public:
     // @brief コンストラクタ
     // @param ntoes ノーツデータ
     // @param banner バナー画像
-    GameScene(const NotesData& notes, int banner);   // ノーツデータとバナーを受け取って初期化
+    // @param autoPlay オートプレイフラグ
+    GameScene(const NotesData& notes, int banner, bool autoPlay = false);   // ノーツデータとバナーを受け取って初期化
 
     // @brief 更新します
     void Update();
@@ -85,8 +86,13 @@ public:
 
     bool finished = false;                           // 楽曲終了フラグ
     bool IsFinished() const { return finished; }     // 終了判定
+    bool IsRetire() const { return isRetire; }       // リタイア判定
+    bool IsRetry() const { return isRetry; }         // リトライ判定
+    const NotesData& GetNotesData() const { return m_notesData; } // ノーツデータ取得
+    bool GetIsAutoPlay() const { return m_isAutoPlay;} // オートプレイ状態取得
 
 private:
+    bool m_isAutoPlay = false;                       // オートプレイ状態
     NotesData m_notesData;                           // ノーツデータ全体
     std::vector<JudgeNote> notes;                    // ノーツ一覧
 	std::vector<LongBody> longBodies;                // ロングノーツの描画用データ
@@ -161,9 +167,24 @@ private:
     int fontMusicName = -1;                          // 曲名表示用フォントハンドル
     int judgeFont = -1;                              // 判定テキスト表示用フォントハンドル
 
-    // カウントダウン関連
     int countDown = 180;                             // 開始前カウントダウン（3秒）
     int started = false;                             // 開始フラグ
+
+    // ポーズ関連
+    bool isPaused = false;                           // ポーズ中かどうか
+    int pauseMenuIndex = 0;                          // ポーズメニューの選択インデックス
+    bool isResuming = false;                         // ポーズ解除後のカウントダウン中か
+    int resumeCountDown = 0;                         // ポーズ解除のカウントダウン
+    int pausedTimeMs = 0;                            // ポーズした瞬間の楽曲時間
+    bool isRetire = false;                           // リタイアしたか
+    bool isRetry = false;                            // リトライしたか
+    bool prevEscapeKey = false;                      // 前回のESCキー
+    bool prevUpKey = false;                          // 前回のUPキー
+    bool prevDownKey = false;                        // 前回のDOWNキー
+    bool prevReturnKey = false;                      // 前回のエンターキー
+
+    int pauseFontLarge = -1;                         // ポーズメニュー用大フォント
+    int pauseFontSmall = -1;                         // ポーズメニュー用小フォント
 
     // レーン発光
     int laneFlash[6] = { 0, 0, 0, 0, 0, 0 };               // レーン発光タイマー

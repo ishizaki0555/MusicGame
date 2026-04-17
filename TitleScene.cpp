@@ -1,4 +1,4 @@
-﻿// ========================================
+// ========================================
 // 
 // MusicGame Project
 // 
@@ -22,6 +22,11 @@ TitleScene::TitleScene()
     // BGM 読み込み
     bgm = LoadSoundMem("BGM/Title.mp3");
     PlaySoundMem(bgm, DX_PLAYTYPE_LOOP);
+
+    // フォント読み込み
+    titleFontLarge = CreateFontToHandle("Fonts/BIZ-UDMinchoM.ttc", 80, 3);
+    titleFontSmall = CreateFontToHandle("Fonts/BIZ-UDMinchoM.ttc", 32, 3);
+
 
     // 粒子初期化
     for (int i = 0; i < PARTICLE_MAX; i++)
@@ -127,11 +132,11 @@ void TitleScene::Draw()
         // マーカーを描画
         if (i == menuIndex)
         {
-            DrawString(540, y, "●", color);
+            DrawStringToHandle(540, y, ">", color, titleFontSmall);
         }
 
         // メニュー項目
-        DrawString(580, y, items[i], color);
+        DrawStringToHandle(580, y, items[i], color, titleFontSmall);
     }
 
 
@@ -166,10 +171,10 @@ void TitleScene::Draw()
 
     // タイトルテキストの幅を取得して中央に配置
     const char* title = "MUSIC GAME!!";
-    int w = GetDrawStringWidth(title, strlen(title));
+    int w = GetDrawStringWidthToHandle(title, strlen(title), titleFontLarge);
     int x = 640 - (int)(w * scale / 2);
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    DrawExtendString(x, 150, scale, scale, title, GetColor(255, 255, 255));
+    DrawExtendStringToHandle(x, 150, scale, scale, title, GetColor(255, 255, 255), titleFontLarge);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     // ============================
@@ -178,6 +183,7 @@ void TitleScene::Draw()
     int alpha = 128 + 127 * sinf(GetNowCount() * 0.01f);
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-    DrawString(500, 600, "PRESS ENTER OR SPACE", GetColor(255, 255, 255));
+    int pw = GetDrawStringWidthToHandle("PRESS ENTER OR SPACE", strlen("PRESS ENTER OR SPACE"), titleFontSmall);
+    DrawStringToHandle(640 - pw / 2, 600, "PRESS ENTER OR SPACE", GetColor(255, 255, 255), titleFontSmall);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }

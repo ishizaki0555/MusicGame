@@ -5,7 +5,7 @@
 // ========================================
 // 
 // MusicSelectUI.h
-// ‘I‹È‰æ–Ê‚Ì‹@”\‚ğ’ñ‹Ÿ‚µ‚Ü‚·B
+// é¸æ›²ç”»é¢ã®æ©Ÿèƒ½ã‚’æä¾›ã—ã¾ã™ã€‚
 // 
 //========================================
 
@@ -28,169 +28,170 @@
 
 namespace fs = std::filesystem;
 
-// “ïˆÕ“x‚Ìí—Ş
+// é›£æ˜“åº¦ã®ç¨®é¡
 enum class Difficulty
 {
-    Easy = 0,       // “ïˆÕ“xƒC[ƒW[
-    Normal,         // “ïˆÕ“xƒm[ƒ}ƒ‹
-    Hard,           // “ïˆÕ“xƒn[ƒh
-    Extra           // “ïˆÕ“xƒGƒNƒXƒgƒ‰
+    Easy = 0,       // é›£æ˜“åº¦ã‚¤ãƒ¼ã‚¸ãƒ¼
+    Normal,         // é›£æ˜“åº¦ãƒãƒ¼ãƒãƒ«
+    Hard,           // é›£æ˜“åº¦ãƒãƒ¼ãƒ‰
+    Extra           // é›£æ˜“åº¦ã‚¨ã‚¯ã‚¹ãƒˆãƒ©
 };
 
-// ƒXƒNƒ[ƒ‹‚Ìó‘Ô
+// ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ã®çŠ¶æ…‹
 enum class ScrollState
 {
-    WaitStart,      // ƒXƒNƒ[ƒ‹ŠJn‘Ò‚¿
-    Scroll,         // ƒXƒNƒ[ƒ‹’†
-    WaitEnd         // ƒXƒNƒ[ƒ‹I—¹‘Ò‚¿
+    WaitStart,      // ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«é–‹å§‹å¾…ã¡
+    Scroll,         // ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ä¸­
+    WaitEnd         // ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«çµ‚äº†å¾…ã¡
 };
 
-// ‘I‹È‰æ–Ê‚ÌUIƒNƒ‰ƒX
+// é¸æ›²ç”»é¢ã®UIã‚¯ãƒ©ã‚¹
 class MusicSelectUI
 {
 public:
 
-    // Šy‹Èî•ñ‚ğ‚Ü‚Æ‚ß‚½\‘¢‘Ì
+    // æ¥½æ›²æƒ…å ±ã‚’ã¾ã¨ã‚ãŸæ§‹é€ ä½“
     struct MusicInfo
     {
-        std::string folder;         // Šy‹È‚ÌƒtƒHƒ‹ƒ_–¼
-        std::string file;           // Šy‹È‚Ì‰¹Œ¹ƒtƒ@ƒCƒ‹–¼
-        std::string banner;         // Šy‹È‚Ìƒoƒi[‰æ‘œƒtƒ@ƒCƒ‹–¼
+        std::string folder;         // æ¥½æ›²ã®ãƒ•ã‚©ãƒ«ãƒ€å
+        std::string file;           // æ¥½æ›²ã®éŸ³æºãƒ•ã‚¡ã‚¤ãƒ«å
+        std::string banner;         // æ¥½æ›²ã®ãƒãƒŠãƒ¼ç”»åƒãƒ•ã‚¡ã‚¤ãƒ«å
         int bpm = 0;                // BPM
-        int offset = 0;             // ƒIƒtƒZƒbƒg(ms)
+        int offset = 0;             // ã‚ªãƒ•ã‚»ãƒƒãƒˆ(ms)
 
-        std::string easyChart;      // ƒC[ƒW[•ˆ–Êƒtƒ@ƒCƒ‹–¼
-        std::string normalChart;    // ƒm[ƒ}ƒ‹•ˆ–Êƒtƒ@ƒCƒ‹–¼
-        std::string hardChart;      // ƒn[ƒh•ˆ–Êƒtƒ@ƒCƒ‹–¼
-        std::string extraChart;     // ƒGƒNƒXƒgƒ‰•ˆ–Êƒtƒ@ƒCƒ‹–¼
+        std::string easyChart;      // ã‚¤ãƒ¼ã‚¸ãƒ¼è­œé¢ãƒ•ã‚¡ã‚¤ãƒ«å
+        std::string normalChart;    // ãƒãƒ¼ãƒãƒ«è­œé¢ãƒ•ã‚¡ã‚¤ãƒ«å
+        std::string hardChart;      // ãƒãƒ¼ãƒ‰è­œé¢ãƒ•ã‚¡ã‚¤ãƒ«å
+        std::string extraChart;     // ã‚¨ã‚¯ã‚¹ãƒˆãƒ©è­œé¢ãƒ•ã‚¡ã‚¤ãƒ«å
 
-        std::string title;          // ‹È–¼
-        int bannerHandle = -1;      // ƒoƒi[‰æ‘œ‚Ìƒnƒ“ƒhƒ‹
+        std::string title;          // æ›²å
+        int bannerHandle = -1;      // ãƒãƒŠãƒ¼ç”»åƒã®ãƒãƒ³ãƒ‰ãƒ«
     };
 
-    // @brief ƒRƒ“ƒXƒgƒ‰ƒNƒ^
-    // @param folderPath Šy‹È‚ªŠi”[‚³‚ê‚½ƒtƒHƒ‹ƒ_ƒpƒX
+    // @brief ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+    // @param folderPath æ¥½æ›²ãŒæ ¼ç´ã•ã‚ŒãŸãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹
     MusicSelectUI(const fs::path& folderPath);
 
-    // @brief ƒfƒXƒgƒ‰ƒNƒ^
+    // @brief ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
     ~MusicSelectUI();
 
-    // @brief Šy‹ÈƒŠƒXƒg‚ğ“Ç‚İ‚İ‚Ü‚·
+    // @brief æ¥½æ›²ãƒªã‚¹ãƒˆã‚’èª­ã¿è¾¼ã¿ã¾ã™
     void LoadMusicList();
     
-    // @brief ƒtƒHƒ“ƒg‚ğ“Ç‚İ‚İ‚Ü‚·
-    // @param fontPath ƒtƒHƒ“ƒg‚Ìƒtƒ@ƒCƒ‹ƒpƒX
-    // @param size ƒtƒHƒ“ƒgƒTƒCƒY
+    // @brief ãƒ•ã‚©ãƒ³ãƒˆã‚’èª­ã¿è¾¼ã¿ã¾ã™
+    // @param fontPath ãƒ•ã‚©ãƒ³ãƒˆã®ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹
+    // @param size ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚º
     void LoadFont(const std::string& fontPath, int size);
 
-    // @brief XV‚µ‚Ü‚·
+    // @brief æ›´æ–°ã—ã¾ã™
     void Update();
 
-    // @brief •`‰æ‚µ‚Ü‚·
+    // @brief æç”»ã—ã¾ã™
     void Draw();
 
-    // @brief “ü—Íó‘Ô‚ğƒŠƒZƒbƒg‚µ‚Ü‚·
+    // @brief å…¥åŠ›çŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆã—ã¾ã™
     void ResetInputState();
+    bool isAutoPlay = false;
 
-    GameScene* createdScene = nullptr;      // ‘I‹È‚©‚ç¶¬‚³‚ê‚½ƒQ[ƒ€ƒV[ƒ“
+    GameScene* createdScene = nullptr;      // é¸æ›²ã‹ã‚‰ç”Ÿæˆã•ã‚ŒãŸã‚²ãƒ¼ãƒ ã‚·ãƒ¼ãƒ³
 
-    int selectSE = -1;      // ‘I‹È•ÏX‰¹
-    int bgmHandle = -1;     // ‘I‹È‰æ–ÊBGM
+    int selectSE = -1;      // é¸æ›²å¤‰æ›´éŸ³
+    int bgmHandle = -1;     // é¸æ›²ç”»é¢BGM
 
-    bool prevEnter = false;         // ‘OƒtƒŒ[ƒ€‚ÌEnterƒL[‚Ìó‘Ô
-    bool prevSpace = false;         // ‘OƒtƒŒ[ƒ€‚ÌSpaceƒL[‚Ìó‘Ô
-    bool sceneStarted = false;      // ƒV[ƒ“ŠJnƒtƒ‰ƒO
+    bool prevEnter = false;         // å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã®Enterã‚­ãƒ¼ã®çŠ¶æ…‹
+    bool prevSpace = false;         // å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã®Spaceã‚­ãƒ¼ã®çŠ¶æ…‹
+    bool sceneStarted = false;      // ã‚·ãƒ¼ãƒ³é–‹å§‹ãƒ•ãƒ©ã‚°
 
 private:
 
-    // @brief ƒ{ƒbƒNƒX‚ğ•`‰æ‚µ‚Ü‚·
-    // @param x ¶ã‚ÌXÀ•W
-    // @param y ¶ã‚ÌYÀ•W
-    // @param w •
-    // @param h ‚‚³
-    // @param r Ô¬•ª
-    // @param g —Î¬•ª
-    // @param b Â¬•ª
-    // @param a ƒAƒ‹ƒtƒ@’l
+    // @brief ãƒœãƒƒã‚¯ã‚¹ã‚’æç”»ã—ã¾ã™
+    // @param x å·¦ä¸Šã®Xåº§æ¨™
+    // @param y å·¦ä¸Šã®Yåº§æ¨™
+    // @param w å¹…
+    // @param h é«˜ã•
+    // @param r èµ¤æˆåˆ†
+    // @param g ç·‘æˆåˆ†
+    // @param b é’æˆåˆ†
+    // @param a ã‚¢ãƒ«ãƒ•ã‚¡å€¤
     void DrawBoxEx(int x, int y, int w, int h, int r, int g, int b, int a);
 
-    // @brief ƒeƒLƒXƒg‚ğ•`‰æ‚µ‚Ü‚·
-    // @param text •`‰æ‚·‚éƒeƒLƒXƒg
-    // @param x •`‰æ‚·‚éXÀ•W
-	// @param y •`‰æ‚·‚éYÀ•W
-    // @param color •`‰æ‚·‚éF
-    // @param font •`‰æ‚·‚éƒtƒHƒ“ƒg‚Ìƒnƒ“ƒhƒ‹
+    // @brief ãƒ†ã‚­ã‚¹ãƒˆã‚’æç”»ã—ã¾ã™
+    // @param text æç”»ã™ã‚‹ãƒ†ã‚­ã‚¹ãƒˆ
+    // @param x æç”»ã™ã‚‹Xåº§æ¨™
+	// @param y æç”»ã™ã‚‹Yåº§æ¨™
+    // @param color æç”»ã™ã‚‹è‰²
+    // @param font æç”»ã™ã‚‹ãƒ•ã‚©ãƒ³ãƒˆã®ãƒãƒ³ãƒ‰ãƒ«
     void DrawTextEx(const std::string& text, int x, int y, int color, int font);
 
-    // @brief ƒeƒLƒXƒg‚ğ’†‰›‘µ‚¦‚Å•`‰æ‚µ‚Ü‚·
-    // @param text •`‰æ‚·‚éƒeƒLƒXƒg
-    // @param centerX •`‰æ‚·‚é’†‰›‚ÌXÀ•W
-    // @param y •`‰æ‚·‚éYÀ•W
-    // @param color •`‰æ‚·‚éF
-    // @param font •`‰æ‚·‚éƒtƒHƒ“ƒg‚Ìƒnƒ“ƒhƒ‹
+    // @brief ãƒ†ã‚­ã‚¹ãƒˆã‚’ä¸­å¤®æƒãˆã§æç”»ã—ã¾ã™
+    // @param text æç”»ã™ã‚‹ãƒ†ã‚­ã‚¹ãƒˆ
+    // @param centerX æç”»ã™ã‚‹ä¸­å¤®ã®Xåº§æ¨™
+    // @param y æç”»ã™ã‚‹Yåº§æ¨™
+    // @param color æç”»ã™ã‚‹è‰²
+    // @param font æç”»ã™ã‚‹ãƒ•ã‚©ãƒ³ãƒˆã®ãƒãƒ³ãƒ‰ãƒ«
     void DrawTextCenter(const std::string& text, int centerX, int y, int color, int font);
 
-    // @brief ƒeƒLƒXƒg‚ğ¶‘µ‚¦‚Å•`‰æ‚µ‚Ü‚·
-    // @param text •`‰æ‚·‚éƒeƒLƒXƒg
-    // @param leftX •`‰æ‚·‚é¶’[‚ÌXÀ•W
-    // @param y •`‰æ‚·‚éYÀ•W
-    // @param barWidth ƒeƒLƒXƒg‚ª‚Í‚İo‚·ê‡‚ÌƒNƒŠƒbƒsƒ“ƒO•
-    // @param color •`‰æ‚·‚éF
-    // @param font •`‰æ‚·‚éƒtƒHƒ“ƒg‚Ìƒnƒ“ƒhƒ‹
+    // @brief ãƒ†ã‚­ã‚¹ãƒˆã‚’å·¦æƒãˆã§æç”»ã—ã¾ã™
+    // @param text æç”»ã™ã‚‹ãƒ†ã‚­ã‚¹ãƒˆ
+    // @param leftX æç”»ã™ã‚‹å·¦ç«¯ã®Xåº§æ¨™
+    // @param y æç”»ã™ã‚‹Yåº§æ¨™
+    // @param barWidth ãƒ†ã‚­ã‚¹ãƒˆãŒã¯ã¿å‡ºã™å ´åˆã®ã‚¯ãƒªãƒƒãƒ”ãƒ³ã‚°å¹…
+    // @param color æç”»ã™ã‚‹è‰²
+    // @param font æç”»ã™ã‚‹ãƒ•ã‚©ãƒ³ãƒˆã®ãƒãƒ³ãƒ‰ãƒ«
     void DrawTextLeftClip(const std::string& text, int leftX, int y, int barWidth, int color, int font);
 
-    //@brief ƒeƒLƒXƒg‚ğ¶‘µ‚¦‚Å•`‰æ‚µ‚Ü‚·
-    // @param text •`‰æ‚·‚éƒeƒLƒXƒg
-    // @param leftX •`‰æ‚·‚é¶’[‚ÌXÀ•W
-    // @param y •`‰æ‚·‚éYÀ•W
-    // @param barWidth ƒeƒLƒXƒg‚ª‚Í‚İo‚·‚Æ‚«‚ÌƒNƒŠƒbƒsƒ“ƒO•
-    // @param color •`‰æ‚·‚éF
-    // @param font •`‰æ‚·‚éƒtƒHƒ“ƒg‚Ìƒnƒ“ƒhƒ‹
+    //@brief ãƒ†ã‚­ã‚¹ãƒˆã‚’å·¦æƒãˆã§æç”»ã—ã¾ã™
+    // @param text æç”»ã™ã‚‹ãƒ†ã‚­ã‚¹ãƒˆ
+    // @param leftX æç”»ã™ã‚‹å·¦ç«¯ã®Xåº§æ¨™
+    // @param y æç”»ã™ã‚‹Yåº§æ¨™
+    // @param barWidth ãƒ†ã‚­ã‚¹ãƒˆãŒã¯ã¿å‡ºã™ã¨ãã®ã‚¯ãƒªãƒƒãƒ”ãƒ³ã‚°å¹…
+    // @param color æç”»ã™ã‚‹è‰²
+    // @param font æç”»ã™ã‚‹ãƒ•ã‚©ãƒ³ãƒˆã®ãƒãƒ³ãƒ‰ãƒ«
     void DrawTextLeftSlide(const std::string& text, int leftX, int y, int barWidth, int color, int font);
 
-    // @brief “ïˆÕ“x‚Ì‰‚¶‚½F‚ğæ“¾‚µ‚Ü‚·
-    // @param diff “ïˆÕ“x
-    // @param r Ô¬•ª
-    // @param g —Î¬•ª
-    // @param b Â¬•ª
-    // @return “ïˆÕ“x‚É‰‚¶‚½F‚ğr, g, b‚ÉƒZƒbƒg‚µ‚Ü‚·
+    // @brief é›£æ˜“åº¦ã®å¿œã˜ãŸè‰²ã‚’å–å¾—ã—ã¾ã™
+    // @param diff é›£æ˜“åº¦
+    // @param r èµ¤æˆåˆ†
+    // @param g ç·‘æˆåˆ†
+    // @param b é’æˆåˆ†
+    // @return é›£æ˜“åº¦ã«å¿œã˜ãŸè‰²ã‚’r, g, bã«ã‚»ãƒƒãƒˆã—ã¾ã™
     static void GetDifficultyColor(Difficulty diff, int& r, int& g, int& b);
 
 private:
-    fs::path folderPath;                // Šy‹È‚ªŠi”[‚³‚ê‚½ƒtƒHƒ‹ƒ_‚ÌƒpƒX
-    std::vector<MusicInfo> musicList;   // Šy‹Èî•ñ‚ÌƒŠƒXƒg
+    fs::path folderPath;                // æ¥½æ›²ãŒæ ¼ç´ã•ã‚ŒãŸãƒ•ã‚©ãƒ«ãƒ€ã®ãƒ‘ã‚¹
+    std::vector<MusicInfo> musicList;   // æ¥½æ›²æƒ…å ±ã®ãƒªã‚¹ãƒˆ
 
-    int fontHandleSmall = -1;           // ¬‚³‚¢ƒtƒHƒ“ƒg‚Ìƒnƒ“ƒhƒ‹
-	int fontHandleLarge = -1;           // ‘å‚«‚¢ƒtƒHƒ“ƒg‚Ìƒnƒ“ƒhƒ‹
+    int fontHandleSmall = -1;           // å°ã•ã„ãƒ•ã‚©ãƒ³ãƒˆã®ãƒãƒ³ãƒ‰ãƒ«
+	int fontHandleLarge = -1;           // å¤§ãã„ãƒ•ã‚©ãƒ³ãƒˆã®ãƒãƒ³ãƒ‰ãƒ«
 
-    // 5 s‚Ì‘Š‘ÎˆÊ’u
+    // 5 è¡Œã®ç›¸å¯¾ä½ç½®
     float posTable[5] = {
-        -140.0f,    // ‚³‚ç‚É‘O‚Ì‹È
-        -70.0f,     // ‘O‚Ì‹È
-         0.0f,      // ¡‚Ì‹Èi’†‰›j
-         70.0f,     // Ÿ‚Ì‹È
-         140.0f     // ‚³‚ç‚ÉŸ‚Ì‹È
+        -140.0f,    // ã•ã‚‰ã«å‰ã®æ›²
+        -70.0f,     // å‰ã®æ›²
+         0.0f,      // ä»Šã®æ›²ï¼ˆä¸­å¤®ï¼‰
+         70.0f,     // æ¬¡ã®æ›²
+         140.0f     // ã•ã‚‰ã«æ¬¡ã®æ›²
     };
 
-    // 5 s‚ÌƒtƒHƒ“ƒgƒTƒCƒYi’†‰›‚¾‚¯‘å‚«‚¢j
+    // 5 è¡Œã®ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚ºï¼ˆä¸­å¤®ã ã‘å¤§ãã„ï¼‰
     int fontTable[5] = {
-        fontHandleSmall,    // ‚³‚ç‚É‘O‚Ì‹È
-        fontHandleSmall,    // ‘O‚Ì‹È
-        fontHandleLarge,    // ’†‰›‚¾‚¯‘å‚«‚¢
-		fontHandleSmall,	// Ÿ‚Ì‹È
-		fontHandleSmall     // ‚³‚ç‚ÉŸ‚Ì‹È
+        fontHandleSmall,    // ã•ã‚‰ã«å‰ã®æ›²
+        fontHandleSmall,    // å‰ã®æ›²
+        fontHandleLarge,    // ä¸­å¤®ã ã‘å¤§ãã„
+		fontHandleSmall,	// æ¬¡ã®æ›²
+		fontHandleSmall     // ã•ã‚‰ã«æ¬¡ã®æ›²
     };
 
     float currentViewIndex = 0.0f;
-    int selectedIndex = 0;                              // ‘I‹È’†‚ÌƒCƒ“ƒfƒbƒNƒX
-    Difficulty selectedDifficulty = Difficulty::Easy;   // ‘I‘ğ’†‚Ì“ïˆÕ“x
+    int selectedIndex = 0;                              // é¸æ›²ä¸­ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
+    Difficulty selectedDifficulty = Difficulty::Easy;   // é¸æŠä¸­ã®é›£æ˜“åº¦
 
-    float scrollOffset = 0.0f;                          // ƒXƒNƒ[ƒ‹ƒIƒtƒZƒbƒg
-    const int longPressValue;   		                // ’·‰Ÿ‚µ‚Æ‚İ‚È‚·ƒtƒŒ[ƒ€”
+    float scrollOffset = 0.0f;                          // ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    const int longPressValue;   		                // é•·æŠ¼ã—ã¨ã¿ãªã™ãƒ•ãƒ¬ãƒ¼ãƒ æ•°
 
-    int titleScroll = 0;                                // ƒ^ƒCƒgƒ‹‚ÌƒXƒNƒ[ƒ‹—Ê
-    int titleScrollTimer = 0;                           // ƒ^ƒCƒgƒ‹‚ÌƒXƒNƒ[ƒ‹ƒ^ƒCƒ}[
+    int titleScroll = 0;                                // ã‚¿ã‚¤ãƒˆãƒ«ã®ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«é‡
+    int titleScrollTimer = 0;                           // ã‚¿ã‚¤ãƒˆãƒ«ã®ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ã‚¿ã‚¤ãƒãƒ¼
 
-    ScrollState scrollState = ScrollState::WaitStart;   // ƒXƒNƒ[ƒ‹‚Ìó‘Ô
-    int scrollWaitTimer = 0;                            // ƒXƒNƒ[ƒ‹‚Ìó‘Ô‚ğØ‚è‘Ö‚¦‚é‚½‚ß‚Ìƒ^ƒCƒ}[
+    ScrollState scrollState = ScrollState::WaitStart;   // ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ã®çŠ¶æ…‹
+    int scrollWaitTimer = 0;                            // ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ã®çŠ¶æ…‹ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹ãŸã‚ã®ã‚¿ã‚¤ãƒãƒ¼
 };
