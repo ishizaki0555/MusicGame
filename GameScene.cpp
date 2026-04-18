@@ -533,7 +533,7 @@ void GameScene::Draw()
 
     // レーンより少し広い間隔で配置する
     float guideSpacing = laneWidth * 1.3f;
-    float startX = -guideSpacing * 2.0f;     // 左端の開始位置
+    float startX = -guideSpacing * 2.5f;     // 左端の開始位置
 
     for (int i = 0; i < 6; i++)
     {
