@@ -177,7 +177,7 @@ void GameScene::Update()
         if (resumeCountDown <= 0) {
             isResuming = false;
             SetSoundCurrentTime(pausedTimeMs, musicHandle);
-            PlaySoundMem(musicHandle, DX_PLAYTYPE_BACK);
+            PlaySoundMem(musicHandle, DX_PLAYTYPE_BACK, FALSE);
         }
         return; // カウントダウン中も更新しない
     }
