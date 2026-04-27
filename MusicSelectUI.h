@@ -56,7 +56,6 @@ public:
         std::string folder;         // 楽曲のフォルダ名
         std::string file;           // 楽曲の音源ファイル名
         std::string banner;         // 楽曲のバナー画像ファイル名
-        int bpm = 0;                // BPM
         int offset = 0;             // オフセット(ms)
 
         std::string easyChart;      // イージー譜面ファイル名
@@ -64,8 +63,29 @@ public:
         std::string hardChart;      // ハード譜面ファイル名
         std::string extraChart;     // エクストラ譜面ファイル名
 
+        int bpmEasy = 0;
+        int bpmNormal = 0;
+        int bpmHard = 0;
+        int bpmExtra = 0;
+
         std::string title;          // 曲名
         int bannerHandle = -1;      // バナー画像のハンドル
+
+        bool HasDifficulty(Difficulty diff) const {
+            if (diff == Difficulty::Easy) return !easyChart.empty();
+            if (diff == Difficulty::Normal) return !normalChart.empty();
+            if (diff == Difficulty::Hard) return !hardChart.empty();
+            if (diff == Difficulty::Extra) return !extraChart.empty();
+            return false;
+        }
+
+        int GetBPM(Difficulty diff) const {
+            if (diff == Difficulty::Easy) return bpmEasy;
+            if (diff == Difficulty::Normal) return bpmNormal;
+            if (diff == Difficulty::Hard) return bpmHard;
+            if (diff == Difficulty::Extra) return bpmExtra;
+            return 0;
+        }
     };
 
     // @brief コンストラクタ

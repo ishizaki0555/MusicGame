@@ -50,21 +50,22 @@ void MusicSelectUI::LoadMusicList()
         fs::path hard = folderPath / fs::u8path(info.folder) / "Hard.json";
         fs::path extra = folderPath / fs::u8path(info.folder) / "Extra.json";
 
-        if (fs::exists(easy)) info.easyChart = "Easy.json";
-        if (fs::exists(normal)) info.normalChart = "Normal.json";
-        if (fs::exists(hard)) info.hardChart = "Hard.json";
-        if (fs::exists(extra)) info.extraChart = "Extra.json";
+        auto loadChartInfo = [&](const fs::path& path, std::string& chartFile, int& bpm) {
+            if (fs::exists(path)) {
+                chartFile = path.filename().string();
+                auto chart = JsonLoader::Load(path);
+                bpm = chart.value("BPM", 0);
+                if (info.title.empty() || info.title == info.folder) {
+                    info.title = chart.value("name", info.folder);
+                }
+            }
+        };
 
-        if (fs::exists(easy))
-        {
-            auto chart = JsonLoader::Load(easy);
-            info.title = chart.value("name", info.folder);
-            info.bpm = chart.value("BPM", 0);
-        }
-        else
-        {
-            info.title = info.folder;
-        }
+        info.title = info.folder;
+        loadChartInfo(easy, info.easyChart, info.bpmEasy);
+        loadChartInfo(normal, info.normalChart, info.bpmNormal);
+        loadChartInfo(hard, info.hardChart, info.bpmHard);
+        loadChartInfo(extra, info.extraChart, info.bpmExtra);
 
         static const std::vector<std::string> exts = {
             ".png", ".jpg", ".jpeg", ".bmp"
@@ -218,6 +219,22 @@ void MusicSelectUI::Update()
 
         prevEnter = (CheckHitKey(KEY_INPUT_RETURN) != 0);
         prevSpace = (CheckHitKey(KEY_INPUT_SPACE) != 0);
+
+        if (!musicList.empty())
+        {
+            auto& info = musicList[selectedIndex];
+            if (!info.HasDifficulty(selectedDifficulty))
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    if (info.HasDifficulty((Difficulty)i))
+                    {
+                        selectedDifficulty = (Difficulty)i;
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     switch (scrollState)
@@ -291,6 +308,8 @@ void MusicSelectUI::Update()
     int down = CheckHitKey(KEY_INPUT_DOWN);
     int keyW = CheckHitKey(KEY_INPUT_W);
     int keyS = CheckHitKey(KEY_INPUT_S);
+    
+    bool songChanged = false;
 
     // UP
     if (up || keyW)
@@ -299,6 +318,7 @@ void MusicSelectUI::Update()
         {
 			PlaySoundMem(selectSE, DX_PLAYTYPE_BACK);
             selectedIndex = (selectedIndex - 1 + musicList.size()) % musicList.size();
+            songChanged = true;
         }
         upTimer++;
     }
@@ -311,10 +331,27 @@ void MusicSelectUI::Update()
         {
             PlaySoundMem(selectSE, DX_PLAYTYPE_BACK);
             selectedIndex = (selectedIndex + 1) % musicList.size();
+            songChanged = true;
         }
         downTimer++;
     }
     else downTimer = 0;
+
+    if (songChanged && !musicList.empty())
+    {
+        auto& info = musicList[selectedIndex];
+        if (!info.HasDifficulty(selectedDifficulty))
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                if (info.HasDifficulty((Difficulty)i))
+                {
+                    selectedDifficulty = (Difficulty)i;
+                    break;
+                }
+            }
+        }
+    }
 
 
     // 難易度選択
@@ -331,6 +368,8 @@ void MusicSelectUI::Update()
     int diffIndex = (int)selectedDifficulty;
 
     // キーボード入力から難易度を変更
+    const auto& info = musicList.empty() ? MusicInfo() : musicList[selectedIndex];
+
     // Qキーか左矢印
     if (left || keyQ)
     {
@@ -339,7 +378,15 @@ void MusicSelectUI::Update()
         if (t == 0 || (t > longPressValue && t % 10 == 0))
         {
             PlaySoundMem(selectSE, DX_PLAYTYPE_BACK);
-            diffIndex = (diffIndex - 1 + 4) % 4;
+            for (int i = 1; i <= 3; i++)
+            {
+                int nextDiff = (diffIndex - i + 4) % 4;
+                if (info.HasDifficulty((Difficulty)nextDiff))
+                {
+                    diffIndex = nextDiff;
+                    break;
+                }
+            }
         }
         t++;
     }
@@ -357,7 +404,15 @@ void MusicSelectUI::Update()
         if (t == 0 || (t > longPressValue && t % 10 == 0))
         {
             PlaySoundMem(selectSE, DX_PLAYTYPE_BACK);
-            diffIndex = (diffIndex + 1) % 4;
+            for (int i = 1; i <= 3; i++)
+            {
+                int nextDiff = (diffIndex + i) % 4;
+                if (info.HasDifficulty((Difficulty)nextDiff))
+                {
+                    diffIndex = nextDiff;
+                    break;
+                }
+            }
         }
         t++;
     }
@@ -366,7 +421,6 @@ void MusicSelectUI::Update()
         rightTimer = 0;
         eTimer = 0;
     }
-
 
     selectedDifficulty = (Difficulty)diffIndex;
 
@@ -566,7 +620,7 @@ void MusicSelectUI::Draw()
     // ============================
     // 曲情報（BPMなど）
     // ============================
-    DrawTextEx("BPM: " + std::to_string(info.bpm), mainX, bannerY + bannerH + 20, GetColor(255, 255, 255), fontHandleSmall);
+    DrawTextEx("BPM: " + std::to_string(info.GetBPM(selectedDifficulty)), mainX, bannerY + bannerH + 20, GetColor(255, 255, 255), fontHandleSmall);
 
     // ============================
     // 難易度ボタン
@@ -582,6 +636,8 @@ void MusicSelectUI::Draw()
     int dx = mainX;
     for (int i = 0; i < 4; i++)
     {
+        if (!info.HasDifficulty(diffs[i])) continue;
+
         int r, g, b;
         GetDifficultyColor(diffs[i], r, g, b);
 
