@@ -39,6 +39,7 @@ void MusicSelectUI::LoadMusicList()
     if (json.empty() || !json.contains("musics"))
         return;
 
+    // JSONに記述された各楽曲情報についてループ処理する
     for (auto& item : json["musics"])
     {
         MusicInfo info;
@@ -71,6 +72,7 @@ void MusicSelectUI::LoadMusicList()
             ".png", ".jpg", ".jpeg", ".bmp"
         };
 
+        // 対応する画像拡張子を順に探し、バナー画像を読み込む
         for (auto& ext : exts)
         {
             fs::path bannerPath = folderPath / fs::u8path(info.folder) / ("banner" + ext);
@@ -225,6 +227,7 @@ void MusicSelectUI::Update()
             auto& info = musicList[selectedIndex];
             if (!info.HasDifficulty(selectedDifficulty))
             {
+                // 存在する難易度を順番に確認し、最初に見つかったものを選択する
                 for (int i = 0; i < 4; i++)
                 {
                     if (info.HasDifficulty((Difficulty)i))
@@ -237,6 +240,7 @@ void MusicSelectUI::Update()
         }
     }
 
+    // スクロールの状態遷移（待機・スクロール中・終了）に応じた処理
     switch (scrollState)
     {
     case ScrollState::WaitStart:
@@ -312,6 +316,7 @@ void MusicSelectUI::Update()
     bool songChanged = false;
 
     // UP
+    // 上キーまたはWキーが押された場合の処理
     if (up || keyW)
     {
         if (upTimer == 0 || (upTimer > longPressValue && upTimer % 10 == 0))
@@ -325,6 +330,7 @@ void MusicSelectUI::Update()
     else upTimer = 0;
 
     // DOWN
+    // 下キーまたはSキーが押された場合の処理
     if (down || keyS)
     {
         if (downTimer == 0 || (downTimer > longPressValue && downTimer % 10 == 0))
@@ -337,11 +343,13 @@ void MusicSelectUI::Update()
     }
     else downTimer = 0;
 
+    // 曲が変更され、かつ楽曲リストが空でない場合
     if (songChanged && !musicList.empty())
     {
         auto& info = musicList[selectedIndex];
         if (!info.HasDifficulty(selectedDifficulty))
         {
+            // 新しく選択された曲で利用可能な難易度を自動的に選ぶ
             for (int i = 0; i < 4; i++)
             {
                 if (info.HasDifficulty((Difficulty)i))
@@ -371,6 +379,7 @@ void MusicSelectUI::Update()
     const auto& info = musicList.empty() ? MusicInfo() : musicList[selectedIndex];
 
     // Qキーか左矢印
+    // 左キーまたはQキーで難易度を下げる（左方向へ切り替える）
     if (left || keyQ)
     {
         int& t = left ? leftTimer : qTimer;
@@ -378,6 +387,7 @@ void MusicSelectUI::Update()
         if (t == 0 || (t > longPressValue && t % 10 == 0))
         {
             PlaySoundMem(selectSE, DX_PLAYTYPE_BACK);
+            // 存在する難易度が見つかるまで左回りで探す
             for (int i = 1; i <= 3; i++)
             {
                 int nextDiff = (diffIndex - i + 4) % 4;
@@ -397,6 +407,7 @@ void MusicSelectUI::Update()
     }
 
     // Eキーか右矢印
+    // 右キーまたはEキーで難易度を上げる（右方向へ切り替える）
     if (right || keyE)
     {
         int& t = right ? rightTimer : eTimer;
@@ -404,6 +415,7 @@ void MusicSelectUI::Update()
         if (t == 0 || (t > longPressValue && t % 10 == 0))
         {
             PlaySoundMem(selectSE, DX_PLAYTYPE_BACK);
+            // 存在する難易度が見つかるまで右回りで探す
             for (int i = 1; i <= 3; i++)
             {
                 int nextDiff = (diffIndex + i) % 4;
@@ -439,6 +451,7 @@ void MusicSelectUI::Update()
     bool decide = (enterDown || spaceDown);
 
     //選曲の決定処理
+    // 決定キーが押された場合の処理
     if (decide)
     {
         StopSoundMem(bgmHandle);
@@ -448,6 +461,7 @@ void MusicSelectUI::Update()
             auto& info = musicList[selectedIndex];
 
             std::string chartFile;
+            // 選択されている難易度に応じて読み込む譜面ファイルを決定する
             switch (selectedDifficulty)
             {
             case Difficulty::Easy:   chartFile = info.easyChart; break;
@@ -456,6 +470,7 @@ void MusicSelectUI::Update()
             case Difficulty::Extra:  chartFile = info.extraChart; break;
             }
 
+            // 譜面ファイルが存在する場合のみ、ゲームシーンを生成して次へ進む準備をする
             if (!chartFile.empty())
             {
                 fs::path chartPath = folderPath / fs::u8path(info.folder) / chartFile;
@@ -468,15 +483,20 @@ void MusicSelectUI::Update()
             }
         }
     }
+    // 楽曲の選択状態に基づいてスクロール位置を滑らかに補間する処理
     if (!musicList.empty())
     {
         float diff = selectedIndex - currentViewIndex;
         float halfSize = musicList.size() / 2.0f;
+        
+        // リストがループする構造のため、最短距離で補間するように調整
         while (diff > halfSize) diff -= musicList.size();
         while (diff < -halfSize) diff += musicList.size();
 
+        // 毎フレーム15%ずつ目標位置に近づける（イージング）
         currentViewIndex += diff * 0.15f; 
 
+        // 範囲外に出た場合のループ処理
         if (currentViewIndex < 0.0f) currentViewIndex += musicList.size();
         if (currentViewIndex >= musicList.size()) currentViewIndex -= musicList.size();
     }
@@ -523,24 +543,31 @@ void MusicSelectUI::Draw()
 
     int centerIdx = (int)std::floor(currentViewIndex);
 
+    // 現在のビュー位置を中心にして、前後数個の項目を描画対象にする（-3から+4まで）
     for (int i = -3; i <= 4; i++)
     {
         long long virtualIdx = (long long)centerIdx + i;
         int idx = (virtualIdx % (long long)musicList.size() + musicList.size()) % musicList.size();
 
+        // 選択中の項目からの距離 (0.0が完全に選択中)
         float dist = (float)virtualIdx - currentViewIndex;
+        
+        // focus は 1.0(完全に選択中) から 0.0(選択から外れている) になる値。デザインの強調に使われる
         float focus = std::max(0.0f, 1.0f - std::abs(dist));
 
+        // 基本となるY軸の曲ごとの間隔
         float baseSpacing = 70.0f;
         float yOffset = dist * baseSpacing;
 
+        // 選択中の項目は少し上下に間隔を空けて目立たせるための追加オフセット処理
         float easeDist = std::min(std::abs(dist), 1.0f);
         if (dist > 0.0f) {
-            yOffset += 10.0f * easeDist;
+            yOffset += 10.0f * easeDist; // 下の項目を少し押し下げる
         } else if (dist < 0.0f) {
-            yOffset -= 10.0f * easeDist;
+            yOffset -= 10.0f * easeDist; // 上の項目を少し押し上げる
         }
 
+        // 最終的なY座標の決定
         float finalY = baseY + yOffset;
 
         if (finalY < leftBoxY - 50 || finalY > leftBoxY + leftBoxH + 50) continue;
@@ -634,6 +661,7 @@ void MusicSelectUI::Draw()
     const char* labels[4] = { "EASY", "NORMAL", "HARD", "EXTRA" };
 
     int dx = mainX;
+    // 4つの難易度ボタンを順に判定して描画するループ
     for (int i = 0; i < 4; i++)
     {
         if (!info.HasDifficulty(diffs[i])) continue;

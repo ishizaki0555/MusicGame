@@ -41,16 +41,22 @@ GameScene::GameScene(const NotesData& notesData, int banner, bool autoPlay)
     int noteNum = static_cast<int>(notes.size());
     maxScore = noteNum * 5;
 
-    // longBodies 生成箇所
+    // ----------------------------------------
+    // ロングノーツの帯(LongBody)の生成箇所
+    // ロングノーツは始点(Type 2)と終点(Type 3)のノーツのペアで表現されるため、
+    // ここでペアを見つけて、その間を繋ぐ「帯」のデータを構築します。
+    // ----------------------------------------
     for (int i = 0; i < notes.size(); i++)
     {
         // ロングノーツの開始ノーツを見つける
-        if (notes[i].type == 2) // start
+        if (notes[i].type == 2) // start (2 = ロングノーツの始点)
         {
-            // 同じレーンでType3のノーツを探す
+            // 対応する終了ノーツ(Type 3)を探す
+            // 始点より後にあるノーツを順番に探索する
             for (int j = i + 1; j < notes.size(); j++)
             {
-                // 譜面によってはロングノーツの終点が同じレーンでない場合もあるため、レーンもチェックする
+                // 同じレーンにある次のType 3ノーツが、この始点とペアになる終点
+                // (譜面によっては終点が同じレーンでない異常なケースを防ぐためレーンもチェック)
                 if (notes[j].type == 3 && notes[j].lane == notes[i].lane)
                 {
                     LongBody body;
@@ -68,6 +74,7 @@ GameScene::GameScene(const NotesData& notesData, int banner, bool autoPlay)
 
     // ノーツ消費フラグを初期化
     noteConsumed.resize(notes.size(), 0);
+    // 各レーンの未処理ノーツインデックスを0にリセット
     for (int i = 0; i < 6; i++) nextNoteIndex[i] = 0;
 
     // ポーズメニュー用フォントの読み込み
@@ -108,6 +115,7 @@ void GameScene::AddJudgeText(int lane, int result, int noteIndex)
     jt.judgeType = result;
 
     // スコア計算
+    // 判定結果に応じたスコアおよびコンボの計算を行う
     switch (result)
     {
     case 0: perfectCount++; ratioScore += 5; combo++; break;
@@ -130,6 +138,7 @@ void GameScene::Update()
     // ポーズ関連処理
     // ============================
     bool nowEsc = (CheckHitKey(KEY_INPUT_ESCAPE) != 0);
+    // Escキーが新しく押された場合の処理
     if (nowEsc && !prevEscapeKey) {
         if (!isPaused && !isResuming && started && !finished) {
             isPaused = true;
@@ -147,6 +156,7 @@ void GameScene::Update()
     }
     prevEscapeKey = nowEsc;
 
+    // ポーズ中のメニュー操作処理
     if (isPaused) {
         bool nowUp = (CheckHitKey(KEY_INPUT_UP) != 0) || (CheckHitKey(KEY_INPUT_W) != 0);
         bool nowDown = (CheckHitKey(KEY_INPUT_DOWN) != 0) || (CheckHitKey(KEY_INPUT_S) != 0);
@@ -172,6 +182,7 @@ void GameScene::Update()
         return; // ポーズ中はこれ以上ゲームを更新しない
     }
 
+    // ポーズ解除後のカウントダウン中の処理
     if (isResuming) {
         resumeCountDown--;
         if (resumeCountDown <= 0) {
@@ -187,6 +198,7 @@ void GameScene::Update()
     // ============================
     
     // ゲーム開始前かどうか判定
+    // ゲームがまだ開始されていない（カウントダウン中）場合の処理
     if (!started)
     {
         countDown--;    // カウントダウンを進める
@@ -213,6 +225,7 @@ void GameScene::Update()
     };
 
     // 各レーンのキー入力を確認
+    // 全6レーンに対するキー入力状態の更新と処理
     for (int i = 0; i < 6; i++)
     {
         nowKey[i] = (CheckHitKey(keys[i]) != 0);    // 現在のキーを記録
@@ -238,19 +251,23 @@ void GameScene::Update()
 
     // ============================
     // 判定処理
+    // 音楽の現在位置(秒)から、キー入力とノーツのタイミングを比較して判定する
     // ============================
     double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0;
 
-    // レーンごとに次の未処理ノーツを確認して判定
+    // 6つのレーンそれぞれについて、次に判定すべき未処理のノーツを確認する
     for (int lane = 0; lane < 6; lane++)
     {
         int idx = nextNoteIndex[lane];
+        
+        // このレーンで一番手前にある「まだ判定されていない(noteConsumedが0)」ノーツを探す
         while (idx < static_cast<int>(notes.size()))
         {
             if (notes[idx].lane == lane && !noteConsumed[idx]) break;
             ++idx;
         }
-		// 次のノーツが存在する場合、判定を行う
+        
+		// 次のノーツのインデックスを保存し、次回以降の探索を効率化
         nextNoteIndex[lane] = idx;
 
         if (idx >= static_cast<int>(notes.size())) continue; // そのレーンに未処理ノーツなし
@@ -270,9 +287,10 @@ void GameScene::Update()
         }
 
         // 通常ノーツかロングノーツの始点の場合は押す動作で判定
+        // 通常ノーツ、またはロングノーツの始点に対する判定処理
         if (notes[idx].type == 1 || notes[idx].type == 2)
         {
-            // キーが押された瞬間に判定
+            // キーが押された瞬間に判定を行う
             if (keyDown[lane])
             {
                 if (timeLag <= PERFECT_RANGE)
@@ -311,9 +329,10 @@ void GameScene::Update()
             }
         }
         // ロングノーツの終点の場合は離す動作で判定
+        // ロングノーツの終点に対する判定処理
         else if (notes[idx].type == 3)
         {
-            // キーが離れた瞬間に判定
+            // キーが離された瞬間に判定を行う
             if (keyUp[lane])
             {
                 if (timeLag <= PERFECT_RANGE)
@@ -370,6 +389,7 @@ void GameScene::Update()
     // ============================
     // 楽曲終了判定
     // ============================
+    // 楽曲の再生時間が合計時間を超えたら終了フラグを立てる
     if (GetSoundCurrentTime(musicHandle) >= GetSoundTotalTime(musicHandle))
     {
         finished = true; // 楽曲終了
@@ -379,6 +399,7 @@ void GameScene::Update()
 // @brief カウントダウン描画
 void GameScene::DrawCountDown()
 {
+    // ゲーム開始後の場合はカウントダウンを描画しない
     if (started) return;   // 開始後は表示しない
 
     int sec = countDown / 60 + 1; // 残り秒数を計算
@@ -393,6 +414,7 @@ void GameScene::DrawCountDown()
 // @brief レーン発光描画
 void GameScene::DrawLaneFlash3D()
 {
+    // 6レーンそれぞれの発光エフェクトを描画するループ
     for (int i = 0; i < 6; i++)   // 各レーンの発光を描画
     {
         if (laneFlash[i] <= 0) continue; // 発光していないならスキップ
@@ -433,6 +455,7 @@ void GameScene::DrawLaneFlash3D()
 // @brief 判定文字描画
 void GameScene::DrawJudgeText()
 {
+    // 現在表示中のすべての判定テキストについて処理を行う
     for (auto& jt : judgeTexts)
     {
         if (jt.timer <= 0) continue;
@@ -440,6 +463,7 @@ void GameScene::DrawJudgeText()
         const char* text = "";
         int baseColor = GetColor(255, 255, 255);
 
+        // 判定結果に応じてテキストと色を設定する
         switch (jt.judgeType)
         {
         case 0: text = "PERFECT"; baseColor = GetColor(255, 255, 0); break;
@@ -485,6 +509,7 @@ void GameScene::Draw()
     SetCameraPositionAndTarget_UpVecY(eye, target); // カメラ設定
 
     // レーン描画
+    // 各レーンの床面を描画するループ
     for (int i = 0; i < 6; i++)
     {
         float x = (i * laneWidth) - (laneWidth * 3);
@@ -501,6 +526,7 @@ void GameScene::Draw()
     // ============================
     // レーン区切りライン描画
     // ============================
+    // レーン同士を区切るラインを描画するループ
     for (int i = 0; i <= 6; i++)
     {
         float x = (i * laneWidth) - (laneWidth * 3);
@@ -535,6 +561,7 @@ void GameScene::Draw()
     float guideSpacing = laneWidth * 1.3f;
     float startX = -guideSpacing * 2.5f;     // 左端の開始位置
 
+    // キーガイド（A, S, D, J, K, L）のテキストを描画するループ
     for (int i = 0; i < 6; i++)
     {
         float x = startX + guideSpacing * i;
@@ -567,28 +594,35 @@ void GameScene::Draw()
 
     if (!started) return; // 開始前はノーツを描画しない
 
-    // currentTime を取得した直後に longBodies を先に描画するブロックを追加
+    // 現在の再生時間と、それに対応するビート（拍数）を取得
     double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0;
     float currentBeat = m_notesData.GetBeatFromTime(currentTime);
     
-    // スクロール速度の基準をビートに合わせる
+    // ----------------------------------------
+    // ノーツ描画処理
+    // ----------------------------------------
+
+    // スクロール速度の基準をビートに合わせる (BPM120を基準とした速度の正規化)
     float baseBpm = m_notesData.bpm > 0 ? m_notesData.bpm : 120.0f;
     float scrollSpeedPerBeat = scrollSpeed * (60.0f / baseBpm);
 
-    // LongBody（帯）を先に描画
+    // 通常のノーツより下に描画されるように、LongBody（ロングノーツの帯）を先に描画
     for (auto& b : longBodies)
     {
+        // 現在のビートから、帯の始点と終点がどれくらい離れているか
         float dBeatStart = b.startBeat - currentBeat;
         float dBeatEnd = b.endBeat - currentBeat;
 
+        // Z座標(奥行き)の計算。プラスが奥、マイナスが手前になる
         float zStart = dBeatStart * scrollSpeedPerBeat;
         float zEnd = dBeatEnd * scrollSpeedPerBeat;
 
-        // ホールド中は帯の終点を判定ラインに固定（判定ラインより奥側を描かない）
+        // プレイヤーがロングノーツをホールド(押し続け)中の場合、帯の始点は判定ライン(JUDGE_LINE_Z)で固定する
+        // これにより、通り過ぎた分の帯が手前にはみ出さず、判定ラインに吸い込まれるような見た目になる
         if (b.lane >= 0 && b.lane < 6 && holding[b.lane] && zStart <= JUDGE_LINE_Z)
             zStart = JUDGE_LINE_Z;
 
-        // 終点が始点より手前に来てしまったら（裏返るのを防ぐ）、描画しない
+        // 終点が始点より手前に来てしまったら（帯が裏返るのを防ぐため）、描画をスキップ
         if (zEnd <= zStart)
             continue;
 
@@ -609,6 +643,7 @@ void GameScene::Draw()
     }
 
     // 既存のノーツ描画（判定用 notes をそのまま描画）
+    // すべてのノーツ（通常ノーツ、ロング開始/終了）を描画するループ
     for (int i = 0; i < notes.size(); i++)
     {
         // ノーツが判定されていたら描画しない
@@ -618,6 +653,7 @@ void GameScene::Draw()
         JudgeNote& n = notes[i];
 
         // 通常ノーツ & ロング開始ノーツ（始点）
+        // 通常ノーツ、またはロングノーツの始点の場合の描画処理
         if (n.type == 1 || n.type == 2)
         {
             // ノーツの位置を計算
@@ -642,6 +678,7 @@ void GameScene::Draw()
         }
 
         // ロング終了ノーツ（終点）
+        // ロングノーツの終点の場合の描画処理
         if (n.type == 3)
         {
             float dBeat = n.beat - currentBeat;
@@ -665,12 +702,14 @@ void GameScene::Draw()
     // ============================
     // ポーズ中のUI描画
     // ============================
+    // ポーズ解除時のカウントダウンUIを描画
     if (isResuming) {
         int sec = resumeCountDown / 60 + 1;
         char buf[32];
         sprintf_s(buf, "%d", sec);
         DrawStringToHandle(640 - 15, 300, buf, GetColor(255, 255, 255), pauseFontLarge);
     }
+    // ポーズ中のメニューUIを描画
     else if (isPaused) {
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
         DrawBox(0, 0, 1280, 720, GetColor(0, 0, 0), TRUE);
@@ -756,6 +795,7 @@ void GameScene::DrawQuad3D(
     v[0].pos = p1; v[1].pos = p2; v[2].pos = p3;
     v[3].pos = p1; v[4].pos = p3; v[5].pos = p4;
 
+    // 3D四角形を構成する6つの頂点に対して法線や色、UV座標を設定する
     for (int i = 0; i < 6; i++)   // 各頂点の属性を設定
     {
         v[i].norm = VGet(0.0f, 1.0f, 0.0f);          // 法線

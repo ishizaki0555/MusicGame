@@ -17,7 +17,7 @@
 #include "GameScene.h"
 #include "ResultScene.h"
 
-// シーンの種類
+// シーンの種類（画面の切り替え用）
 enum class SceneType
 {
     TITLE_SCENE,     // タイトル画面
@@ -26,16 +26,18 @@ enum class SceneType
     RESULT_SCENE     // リザルト画面
 };
 
+// 現在表示しているシーン
 SceneType currentScene = SceneType::TITLE_SCENE;
 
+// シーン遷移（暗転・明転）の状態を管理する列挙型
 enum class TransitionState {
-    None,
-    FadeIn,
-    FadeOut
+    None,       // 遷移なし（通常状態）
+    FadeIn,     // 画面が暗くなる（新しいシーンへの準備）
+    FadeOut     // 画面が明るくなる（新しいシーンの開始）
 };
 TransitionState transState = TransitionState::None;
-float transProgress = 0.0f;
-SceneType nextSceneType = SceneType::TITLE_SCENE;
+float transProgress = 0.0f; // 遷移の進行度 (0.0f = 遷移なし, 1.0f = 完了)
+SceneType nextSceneType = SceneType::TITLE_SCENE; // 次に切り替わる予定のシーン
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
     // ウィンドウの名前を設定
@@ -48,6 +50,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     SetUseZBuffer3D(TRUE);               // Zバッファ使用
     SetWriteZBuffer3D(TRUE);             // Zバッファ書き込み
 
+    // DXLibの初期化に失敗した場合はプログラムを終了する
     if (DxLib_Init() == -1) return -1;   // DXLib 初期化
     SetDrawScreen(DX_SCREEN_BACK);       // 裏画面に描画
 
@@ -69,15 +72,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     ResultScene* result = nullptr;
 
     // メインループ
+    // Windowsのメッセージ処理を行い、問題なければループを継続する
     while (ProcessMessage() == 0)
     {
         ClearDrawScreen();
 
+        // 現在のシーン状態に応じて処理を分岐する
         switch (currentScene)
         {
             case SceneType::TITLE_SCENE:            
                 title->Update();
                 title->Draw();
+                // 遷移中でなく、タイトル画面で次へ進むフラグが立っている場合
                 if (transState == TransitionState::None && title->goNext) {
                     nextSceneType = SceneType::SELECT_SCENE;
                     transState = TransitionState::FadeIn;
@@ -87,6 +93,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
             case SceneType::SELECT_SCENE:
                 selectUI.Update();
                 selectUI.Draw();
+                // 遷移中でなく、選曲画面からゲームシーンへの遷移条件を満たした場合
                 if (transState == TransitionState::None && selectUI.createdScene != nullptr) {
                     nextSceneType = SceneType::GAME_SCENE;
                     transState = TransitionState::FadeIn;
@@ -94,9 +101,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                 break;
 
             case SceneType::GAME_SCENE:
+                // ゲームシーンのインスタンスが存在する場合のみ更新・描画を行う
                 if (game) {
                     game->Update();
                     game->Draw();
+                    // 遷移中でない場合のみ、ゲーム内の状態を確認して次のシーンへ進むか判定する
                     if (transState == TransitionState::None) {
                         if (game->IsFinished()) {
                             nextSceneType = SceneType::RESULT_SCENE;
@@ -124,13 +133,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                 break;
         }
 
+        // フェードイン（画面を暗くしていく処理）
         if (transState == TransitionState::FadeIn)
         {
-            transProgress += 0.04f;
+            transProgress += 0.04f; // 毎フレーム進行度を増やす
             if (transProgress >= 1.0f)
             {
-                transProgress = 1.0f;
+                transProgress = 1.0f; // フェードイン完了
 
+                // --- ここでシーンの切り替えに伴うメモリの解放や再初期化を行う ---
                 if (currentScene == SceneType::TITLE_SCENE && nextSceneType == SceneType::SELECT_SCENE) 
                 {
                     StopSoundMem(title->bgm);
@@ -176,9 +187,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                 transState = TransitionState::FadeOut;
             }
         }
+        // フェードアウト（画面を明るくしていく処理）
         else if (transState == TransitionState::FadeOut)
         {
             transProgress -= 0.04f;
+            // 進行度が0以下になったらフェードアウト完了
             if (transProgress <= 0.0f)
             {
                 transProgress = 0.0f;
@@ -186,11 +199,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
             }
         }
 
+        // 遷移中であれば、画面全体にフェード効果のための黒い矩形を描画する
         if (transState != TransitionState::None)
         {
             int w = 1280;
             int h = 720;
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+            // フェードイン時は左から右へ黒く塗りつぶす
             if (transState == TransitionState::FadeIn)
             {
                 int fillX = (int)(w * (1.0f - transProgress));

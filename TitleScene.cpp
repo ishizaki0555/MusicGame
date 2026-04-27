@@ -29,6 +29,7 @@ TitleScene::TitleScene()
 
 
     // 粒子初期化
+    // 全てのパーティクルの初期位置と速度をランダムに設定する
     for (int i = 0; i < PARTICLE_MAX; i++)
     {
         particles[i].x = rand() % 1280;
@@ -53,8 +54,10 @@ void TitleScene::Update()
     int down = CheckHitKey(KEY_INPUT_DOWN) || CheckHitKey(KEY_INPUT_S);
 
     // 上移動
+    // 上キーが押されている場合の処理
     if (up)
     {
+        // 最初に押した瞬間、または長押しして一定時間が経過した後に一定間隔で処理を行う
         if (upTimer == 0 || (upTimer > REPEAT_START && upTimer % REPEAT_INTERVAL == 0))
         {
             menuIndex = (menuIndex + 2) % 3;  // 上へ
@@ -67,8 +70,10 @@ void TitleScene::Update()
     }
 
     // 下移動
+    // 下キーが押されている場合の処理
     if (down)
     {
+        // 最初に押した瞬間、または長押しして一定時間が経過した後に一定間隔で処理を行う
         if (downTimer == 0 || (downTimer > REPEAT_START && downTimer % REPEAT_INTERVAL == 0))
         {
             menuIndex = (menuIndex + 1) % 3;  // 下へ
@@ -81,8 +86,10 @@ void TitleScene::Update()
     }
 
     // 決定
+    // 決定キー（エンターまたはスペース）が押された場合の処理
     if (CheckHitKey(KEY_INPUT_RETURN) || CheckHitKey(KEY_INPUT_SPACE))
     {
+        // 選択されているメニュー項目に応じて処理を分岐する
         if (menuIndex == 0)
         {
             goNext = true; // Start
@@ -99,9 +106,11 @@ void TitleScene::Update()
     }
 
     // パーティクル更新（既存）
+    // 全てのパーティクルの位置を更新する
     for (int i = 0; i < PARTICLE_MAX; i++)
     {
         particles[i].y += particles[i].speed;
+        // 画面下端を越えたら上に戻す
         if (particles[i].y > 720)
         {
             particles[i].y = 0;
@@ -120,6 +129,7 @@ void TitleScene::Draw()
     // ============================
     const char* items[3] = { "START", "SETTING", "EXIT" };
 
+    // 3つのメニュー項目を順番にループして描画する
     for (int i = 0; i < 3; i++)
     {
         int y = 350 + i * 60;
@@ -169,10 +179,12 @@ void TitleScene::Draw()
     // ============================
     float scale = 1.0f + 0.05f * sinf(GetNowCount() * 0.005f);
 
-    // タイトルテキストの幅を取得して中央に配置
+    // タイトルテキストの幅を取得して、画面中央(X=640)に配置する
     const char* title = "MUSIC GAME!!";
     int w = GetDrawStringWidthToHandle(title, strlen(title), titleFontLarge);
+    // スケールを考慮して文字列の中央のX座標を計算する
     int x = 640 - (int)(w * scale / 2);
+    
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
     DrawExtendStringToHandle(x, 150, scale, scale, title, GetColor(255, 255, 255), titleFontLarge);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
@@ -180,6 +192,7 @@ void TitleScene::Draw()
     // ============================
     // PRESS ENTER（点滅）
     // ============================
+    // サイン波を使って、時間経過とともにアルファ値（透明度）を0~255の間で滑らかに変化させる
     int alpha = 128 + 127 * sinf(GetNowCount() * 0.01f);
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
