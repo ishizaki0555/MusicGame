@@ -11,6 +11,7 @@
 
 #pragma once
 #include <DxLib.h>
+#include "imgui/imgui.h"
 #include <vector>
 
 // İ’è‰æ–Ê‚ÌƒNƒ‰ƒX
@@ -31,9 +32,12 @@ public:
 	void Draw();
 
 private:
-	struct TestNote
-	{
-		float time;
-		int lane;
-	};
+
+	float noteSpeed = 1.0f;
+	int screenWidth = 1280;
+	int screenHeight = 720;
+
+	float bgmVolume = 1.0f;
+	float seVolume = 1.0f;
+	float masterVolume = 1.0f;
 };

@@ -10,8 +10,10 @@ SettingScene::~SettingScene()
 
 void SettingScene::Update()
 {
+	
 }
 
 void SettingScene::Draw()
 {
+
 }

@@ -120,7 +120,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)include\glm;$(ProjectDir)include\nlohmann;$(ProjectDir)\DxLib_VC;$(ProjectDir)include\imgui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)include\glm;$(ProjectDir)include\nlohmann;$(ProjectDir)\DxLib_VC;$(ProjectDir)include\imgui;$(ProjectDir)include\imgui\backends</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -152,6 +152,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GameScene.cpp" />
+    <ClCompile Include="include\imgui\backends\imgui_impl_dx9.cpp" />
+    <ClCompile Include="include\imgui\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="include\imgui\imgui.cpp" />
+    <ClCompile Include="include\imgui\imgui_demo.cpp" />
+    <ClCompile Include="include\imgui\imgui_draw.cpp" />
+    <ClCompile Include="include\imgui\imgui_tables.cpp" />
+    <ClCompile Include="include\imgui\imgui_widgets.cpp" />
     <ClCompile Include="JsonCreator.cpp" />
     <ClCompile Include="MusicPlayer.cpp" />
     <ClCompile Include="JsonLoader.cpp" />
@@ -163,6 +170,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameScene.h" />
+    <ClInclude Include="include\imgui\backends\imgui_impl_dx9.h" />
+    <ClInclude Include="include\imgui\backends\imgui_impl_win32.h" />
     <ClInclude Include="MusicPlayer.h" />
     <ClInclude Include="JsonCreator.h" />
     <ClInclude Include="JsonLoader.h" />
