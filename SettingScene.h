@@ -33,11 +33,13 @@ public:
 
 private:
 
-	float noteSpeed = 1.0f;
-	int screenWidth = 1280;
-	int screenHeight = 720;
+	float noteSpeed = 1.0f;		// ノーツの速度
+	int screenWidth = 1280;		// 画面の幅
+	int screenHeight = 720;		// 画面の高さ
 
-	float bgmVolume = 1.0f;
-	float seVolume = 1.0f;
-	float masterVolume = 1.0f;
+	float bgmVolume = 1.0f;		// BGMの音量
+	float seVolume = 1.0f;		// SEの音量
+	float masterVolume = 1.0f;	// 全体の音量
+
+	bool goBack = false;		// タイトル画面に戻るフラグ
 };

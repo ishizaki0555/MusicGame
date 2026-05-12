@@ -96,7 +96,7 @@ void TitleScene::Update()
         }
         else if (menuIndex == 1)
         {
-            // Setting（後で追加）
+            
         }
         else if (menuIndex == 2)
         {

@@ -14,33 +14,21 @@
 #include <d3d9.h>
 #include <windows.h>
 
-//#include "imgui.h"
-//#include "imgui_impl_win32.h"
-//#include "imgui_impl_dx9.h"
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx9.h"
 
 #include "MusicSelectUI.h"
+#include "SettingScene.h"
 #include "TitleScene.h"
 #include "GameScene.h"
 #include "ResultScene.h"
-
-// ----------------------------------------
-// ImGui Win32 ハンドラ
-// ----------------------------------------
-//extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(
-//	HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-//
-//LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM mParam, LPARAM lParam)
-//{
-//    if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, mParam, lParam))
-//        return 1;
-//
-//    return DefWindowProc(hwnd, msg, mParam, lParam);
-//}
 
 // シーンの種類（画面の切り替え用）
 enum class SceneType
 {
     TITLE_SCENE,     // タイトル画面
+    SETTING_SCENE,   // 設定画面
     SELECT_SCENE,    // 選曲画面
     GAME_SCENE,      // ゲームプレイ
     RESULT_SCENE     // リザルト画面
@@ -72,19 +60,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     SetUseZBuffer3D(TRUE);               // Zバッファ使用
     SetWriteZBuffer3D(TRUE);             // Zバッファ書き込み
 
-    //SetHookWinProc(WndProc);
+    SetUseDirect3DVersion(DX_DIRECT3D_9);
 
     // DXLibの初期化に失敗した場合はプログラムを終了する
     if (DxLib_Init() == -1) return -1;   // DXLib 初期化
 
+    // DX9 デバイス取得
+    IDirect3DDevice9* device = (IDirect3DDevice9*)GetUseDirect3DDevice9();
+
+    // ImGui 初期化
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui_ImplWin32_Init(GetMainWindowHandle());
+    ImGui_ImplDX9_Init(device);
+
     SetDrawScreen(DX_SCREEN_BACK);       // 裏画面に描画
-
-    // ImGuiの初期化
-    //ImGui::CreateContext();
-    //HWND hwnd = GetMainWindowHandle();
-    //ImGui_ImplWin32_Init(hwnd);
-
-    //ImGui::StyleColorsDark(); // ダークテーマを適用
 
     // タイトルシーン生成
     TitleScene* title = new TitleScene();
@@ -95,6 +85,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     // 楽曲リスト読み込み
     selectUI.LoadMusicList();
 
+    // 設定シーン
+    SettingScene* setting = nullptr;
     // ゲームシーン
     GameScene* game = nullptr;
     // リザルトシーン
@@ -106,10 +98,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     {
         ClearDrawScreen();
 
-        // ImGuiの新しいフレームを開始
-        //ImGui_ImplDX9_NewFrame();
-        //ImGui_ImplWin32_NewFrame();
-        //ImGui::NewFrame();
+        // --- ImGui フレーム開始 ---
+        ImGui_ImplDX9_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+        ImGui::NewFrame();
 
         // 現在のシーン状態に応じて処理を分岐する
         switch (currentScene)
@@ -253,17 +245,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
             SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
         }
 
-        // ImGuiの描画を行う
-        //ImGui::Render();
-        //ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+        // --- ImGui 描画 ---
+        ImGui::Render();
+        ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 
         ScreenFlip();
     }
 
-    // ImGuiの終了処理
-    //ImGui_ImplDX9_Shutdown();
-    //ImGui_ImplWin32_Shutdown();
-    //ImGui::DestroyContext();
+    // ImGui 終了
+    ImGui_ImplDX9_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
 
     // DXLib終了処理
     DxLib_End();
