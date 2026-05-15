@@ -8,6 +8,7 @@
 
 #define NOMINMAX
 #include <windows.h>
+#include "Config.h"
 
 MusicSelectUI::MusicSelectUI(const fs::path& folder)
     : folderPath(folder)
@@ -18,6 +19,15 @@ MusicSelectUI::MusicSelectUI(const fs::path& folder)
 
     // リザルト画面のBGMを取得
     bgmHandle = LoadSoundMem("Sounds/select.wav");
+
+    // SE音量適用
+    int seVol = (int)(255 * Config::seVolume * Config::masterVolume);
+    if (seVol < 0) seVol = 0; if (seVol > 255) seVol = 255;
+    ChangeVolumeSoundMem(seVol, selectSE);
+
+    // BGM音量適用 (プレビューBGM用)
+    Config::currentBgmHandle = bgmHandle;
+    Config::ApplyVolume();
 }
 
 MusicSelectUI::~MusicSelectUI()

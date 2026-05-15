@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Config.cpp" />
     <ClCompile Include="GameScene.cpp" />
     <ClCompile Include="include\imgui\backends\imgui_impl_dx9.cpp" />
     <ClCompile Include="include\imgui\backends\imgui_impl_win32.cpp" />
@@ -166,9 +167,11 @@
     <ClCompile Include="MusicSelectUI.cpp" />
     <ClCompile Include="Notes.cpp" />
     <ClCompile Include="ResultScene.cpp" />
+    <ClCompile Include="SettingScene.cpp" />
     <ClCompile Include="TitleScene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Config.h" />
     <ClInclude Include="GameScene.h" />
     <ClInclude Include="include\imgui\backends\imgui_impl_dx9.h" />
     <ClInclude Include="include\imgui\backends\imgui_impl_win32.h" />

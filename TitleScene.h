@@ -29,8 +29,9 @@ public:
     // @brief 描画します
     void Draw();
 
-    bool goNext = false;    // ENTERで次へ
-    int bgm = -1;           // BGMハンドル
+    bool goNext = false;            // ENTERで次へ
+    bool goSetting = false;         // 設定画面に遷移するフラグ
+    int bgm = -1;                   // BGMハンドル
 
 private:
 
@@ -47,6 +48,9 @@ private:
         float speed;    // 落下速度 (Y軸方向への移動量)
     };
     Particle particles[PARTICLE_MAX];       // パーティクルの配列
+
+	bool prevEnter = false;                // 前フレームのEnterキーの状態
+	bool prevSpace = false;                // 前フレームのSpaceキーの状態
 
     float logoScale = 1.0f;                 // タイトルロゴをアニメーションさせるための拡大率
 	float bandOffset = 0.0f;			    // 背景の装飾バンドのオフセット(現在未使用)

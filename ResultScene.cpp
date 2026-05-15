@@ -5,21 +5,22 @@
 // ========================================
 // 
 // ResultScene.cpp
-// ƒQ[ƒ€ƒvƒŒƒCŒã‚ÌƒŠƒUƒ‹ƒg‰æ–Ê‚Ì‹@”\‚ğ’ñ‹Ÿ‚µ‚Ü‚·
+// ã‚²ãƒ¼ãƒ ãƒ—ãƒ¬ã‚¤å¾Œã®ãƒªã‚¶ãƒ«ãƒˆç”»é¢ã®æ©Ÿèƒ½ã‚’æä¾›ã—ã¾ã™
 // 
 //========================================
 
 #include "ResultScene.h"
+#include "Config.h"
 
-// @brief ƒRƒ“ƒXƒgƒ‰ƒNƒ^
-// @param score ƒXƒRƒA
-// @param combo Å‘åƒRƒ“ƒ{
-// @param perfect perfect”»’è
-// @param great great”»’è
-// @param good good”»’è
-// @param miss miss”»’è
-// @param songName ‹È–¼
-// @param banner ƒoƒi[î•ñ
+// @brief ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+// @param score ã‚¹ã‚³ã‚¢
+// @param combo æœ€å¤§ã‚³ãƒ³ãƒœ
+// @param perfect perfectåˆ¤å®š
+// @param great greatåˆ¤å®š
+// @param good goodåˆ¤å®š
+// @param miss missåˆ¤å®š
+// @param songName æ›²å
+// @param banner ãƒãƒŠãƒ¼æƒ…å ±
 ResultScene::ResultScene(int score, int combo, int perfect, int great, int good, int miss, const std::string& songName, int banner)
 	: score(score), maxCombo(combo), perfectCount(perfect), greatCount(great), goodCount(good), missCount(miss), songName(songName), bannerHandle(banner)
 {
@@ -28,32 +29,34 @@ ResultScene::ResultScene(int score, int combo, int perfect, int great, int good,
 	songNameFont = CreateFontToHandle("Fonts/BIZ-UDMinchoM.ttc", 48, 3);
 	comboFont = CreateFontToHandle("Fonts/BIZ-UDMinchoM.ttc", 32, 3);
 
-	// ƒŠƒUƒ‹ƒg‰æ–Ê‚ÌBGM‚ğÄ¶
+	// ãƒªã‚¶ãƒ«ãƒˆç”»é¢ã®BGMã‚’å†ç”Ÿ
 	bgmHandle = LoadSoundMem("Sounds/result.wav");
+	Config::currentBgmHandle = bgmHandle;
+	Config::ApplyVolume();
 	PlaySoundMem(bgmHandle, DX_PLAYTYPE_LOOP);
 }
 
-// @brief XV‚µ‚Ü‚·
+// @brief æ›´æ–°ã—ã¾ã™
 ResultScene::~ResultScene()
 {
 }
 
-// @brief XV‚µ‚Ü‚·
+// @brief æ›´æ–°ã—ã¾ã™
 void ResultScene::Update()
 {
-	// Œ»İ‚ÌƒL[ó‘Ô
+	// ç¾åœ¨ã®ã‚­ãƒ¼çŠ¶æ…‹
 	bool nowEnter = (CheckHitKey(KEY_INPUT_RETURN) != 0);
 	bool nowSpace = (CheckHitKey(KEY_INPUT_SPACE) != 0);
 
-	// ‰Ÿ‚µ‚½uŠÔ‚¾‚¯ true
+	// æŠ¼ã—ãŸç¬é–“ã ã‘ true
 	bool enterDown = (nowEnter && !prevEnter);
 	bool spaceDown = (nowSpace && !prevSpace);
 
-	// ŸƒtƒŒ[ƒ€‚Ì‚½‚ß‚É•Û‘¶
+	// æ¬¡ãƒ•ãƒ¬ãƒ¼ãƒ ã®ãŸã‚ã«ä¿å­˜
 	prevEnter = nowEnter;
 	prevSpace = nowSpace;
 
-	// Œˆ’è
+	// æ±ºå®š
 	if (enterDown || spaceDown)
 	{
 		StopSoundMem(bgmHandle);
@@ -61,34 +64,34 @@ void ResultScene::Update()
 	}
 }
 
-// @brief •`‰æ‚µ‚Ü‚·
+// @brief æç”»ã—ã¾ã™
 void ResultScene::Draw()
 {
-	// •`‰æ‚ğˆê“xƒŠƒZƒbƒg‚·‚é
+	// æç”»ã‚’ä¸€åº¦ãƒªã‚»ãƒƒãƒˆã™ã‚‹
 	ClearDrawScreen();
 
 	// ==============================
-	// ”wŒi‚Éƒoƒi[‚ğ•`‰æ‚·‚é
+	// èƒŒæ™¯ã«ãƒãƒŠãƒ¼ã‚’æç”»ã™ã‚‹
 	// ==============================
 	if (bannerHandle != -1)
 	{
 		DrawExtendGraph(0, 0, 1280, 720, bannerHandle, TRUE);
 	}
 
-	// ”¼“§–¾‚É•`‰æ
+	// åŠé€æ˜ã«æç”»
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
 	DrawBox(0, 0, 1280, 720, GetColor(0, 0, 0), TRUE);
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
 	// ==============================
-	// ‹È–¼
+	// æ›²å
 	// ==============================
 	std::string sjis = Utf8ToSjis(songName);
 	int titleW = GetDrawStringWidth(sjis.c_str(), sjis.size(), songNameFont);
 	DrawStringToHandle(640 - titleW / 2, 40, sjis.c_str(), GetColor(255, 255, 255), songNameFont);
 
 	// ==============================
-	// ƒoƒi[•`‰æ
+	// ãƒãƒŠãƒ¼æç”»
 	// ==============================
 	if (bannerHandle != -1)
 	{
@@ -101,49 +104,49 @@ void ResultScene::Draw()
 	}
 
 	// ==============================
-	// Å‘åƒRƒ“ƒ{
+	// æœ€å¤§ã‚³ãƒ³ãƒœ
 	// ==============================
 	char buf[64];
 	sprintf_s(buf, "MaxCombo  %d", maxCombo);
 	DrawStringToHandle(80, 400, buf, GetColor(255, 255, 255), comboFont);
 
 	// ==============================
-	// ”»’è”•`‰æ
+	// åˆ¤å®šæ•°æç”»
 	// ==============================
 	int baseX = 750;
 	int y = 150;
 	int dy = 50;
 
-	// ƒp[ƒtƒFƒNƒg
+	// ãƒ‘ãƒ¼ãƒ•ã‚§ã‚¯ãƒˆ
 	sprintf_s(buf, "Perfect   %d", perfectCount);
 	DrawStringToHandle(baseX, y, buf, judgeTextColor[(int)JudgeNum::PERFECT], judgeFont); y += dy;
 
-	// ƒOƒŒ[ƒg
+	// ã‚°ãƒ¬ãƒ¼ãƒˆ
 	sprintf_s(buf, "Great     %d", greatCount);
 	DrawStringToHandle(baseX, y, buf, judgeTextColor[(int)JudgeNum::GREAT], judgeFont); y += dy;
 
-	// ƒOƒbƒh
+	// ã‚°ãƒƒãƒ‰
 	sprintf_s(buf, "Good      %d", goodCount);
 	DrawStringToHandle(baseX, y, buf, judgeTextColor[(int)JudgeNum::GOOD], judgeFont); y += dy;
 
-	// ƒ~ƒX
+	// ãƒŸã‚¹
 	sprintf_s(buf, "Miss      %d", missCount);
 	DrawStringToHandle(baseX, y, buf, judgeTextColor[(int)JudgeNum::MISS], judgeFont); y += dy;
 
 	// ==============================
-	// –ß‚éˆÄ“à
+	// æˆ»ã‚‹æ¡ˆå†…
 	// ==============================
 	DrawString(500, 600, "PRESS ENTER OR SPACE TO RETURN", GetColor(255, 255, 255));
 }
 
 std::string ResultScene::Utf8ToSjis(const std::string& utf8)
 {
-	// UTF-8 ¨ UTF-16
+	// UTF-8 â†’ UTF-16
 	int wlen = MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, nullptr, 0);
 	std::wstring wstr(wlen, 0);
 	MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, &wstr[0], wlen);
 
-	// UTF-16 ¨ Shift-JIS
+	// UTF-16 â†’ Shift-JIS
 	int len = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
 	std::string sjis(len, 0);
 	WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, &sjis[0], len, nullptr, nullptr);

@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include "GameScene.h"
+#include "Config.h"
 
 // @brief  コンストラクタ
 // @param notesData ノーツデータ
@@ -36,6 +37,15 @@ GameScene::GameScene(const NotesData& notesData, int banner, bool autoPlay)
     // 効果音の読み込み
     hitSE = LoadSoundMem("Sounds/hit.mp3");
     rongSE = LoadSoundMem("Sounds/rong.mp3");
+
+    // 音量の適用
+    Config::currentBgmHandle = musicHandle;
+    Config::ApplyVolume();
+    
+    int seVol = (int)(255 * Config::seVolume * Config::masterVolume);
+    if (seVol < 0) seVol = 0; if (seVol > 255) seVol = 255;
+    ChangeVolumeSoundMem(seVol, hitSE);
+    ChangeVolumeSoundMem(seVol, rongSE);
 
     // スコアの最大値をノーツ数から計算
     int noteNum = static_cast<int>(notes.size());
@@ -604,7 +614,7 @@ void GameScene::Draw()
 
     // スクロール速度の基準をビートに合わせる (BPM120を基準とした速度の正規化)
     float baseBpm = m_notesData.bpm > 0 ? m_notesData.bpm : 120.0f;
-    float scrollSpeedPerBeat = scrollSpeed * (60.0f / baseBpm);
+    float scrollSpeedPerBeat = scrollSpeed * Config::noteSpeed * (60.0f / baseBpm);
 
     // 通常のノーツより下に描画されるように、LongBody（ロングノーツの帯）を先に描画
     for (auto& b : longBodies)

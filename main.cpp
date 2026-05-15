@@ -18,11 +18,21 @@
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx9.h"
 
+#include "Config.h"
 #include "MusicSelectUI.h"
 #include "SettingScene.h"
 #include "TitleScene.h"
 #include "GameScene.h"
 #include "ResultScene.h"
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(
+    HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam);
+    return 0;
+}
 
 // シーンの種類（画面の切り替え用）
 enum class SceneType
@@ -54,13 +64,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     SetMainWindowText("MusicGame");
 
     // DXLib 初期設定
-    SetGraphMode(1280, 720, 32, 60);     // 画面サイズ設定
-    ChangeWindowMode(TRUE);              // ウィンドウモード
+    Config::Load();                     // 設定の読み込み
+    SetChangeScreenModeGraphicsSystemResetFlag(FALSE); // 解像度変更時にグラフィックリソースを維持
+    SetGraphMode(Config::screenWidth, Config::screenHeight, 32, 60); // 解像度を設定
+    ChangeWindowMode(TRUE);             // ウィンドウモード
 
-    SetUseZBuffer3D(TRUE);               // Zバッファ使用
-    SetWriteZBuffer3D(TRUE);             // Zバッファ書き込み
+    SetUseZBuffer3D(TRUE);              // Zバッファ使用
+    SetWriteZBuffer3D(TRUE);            // Zバッファ書き込み
 
     SetUseDirect3DVersion(DX_DIRECT3D_9);
+
+	// Windowsのメッセージ処理をフックして、ImGuiがウィンドウイベントを受け取れるようにする
+    SetHookWinProc(WndProc);
 
     // DXLibの初期化に失敗した場合はプログラムを終了する
     if (DxLib_Init() == -1) return -1;   // DXLib 初期化
@@ -110,8 +125,32 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                 title->Update();
                 title->Draw();
                 // 遷移中でなく、タイトル画面で次へ進むフラグが立っている場合
-                if (transState == TransitionState::None && title->goNext) {
-                    nextSceneType = SceneType::SELECT_SCENE;
+                if (transState == TransitionState::None)
+                {
+                    if (title->goNext)
+                    {
+                        title->goNext = false;
+                        nextSceneType = SceneType::SELECT_SCENE;
+                        transState = TransitionState::FadeIn;
+                    }
+                    else if(title->goSetting)
+                    {
+                        title->goSetting = false;
+                        nextSceneType = SceneType::SETTING_SCENE;
+						transState = TransitionState::FadeIn;
+                    }
+                }
+                break;
+
+            case SceneType::SETTING_SCENE:
+                if (!setting) setting = new SettingScene();
+
+                setting->Update();
+                setting->Draw();
+
+                if (transState == TransitionState::None && setting->goBack)
+                {
+                    nextSceneType = SceneType::TITLE_SCENE;
                     transState = TransitionState::FadeIn;
                 }
                 break;
@@ -173,6 +212,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                     StopSoundMem(title->bgm);
                     selectUI.LoadFont("Fonts/BIZ-UDMinchoM.ttc", 32);
                     selectUI.LoadMusicList();
+                }
+				else if (currentScene == SceneType::SETTING_SCENE && nextSceneType == SceneType::TITLE_SCENE)
+                {
+                    delete setting;
+                    setting = nullptr;
+
+                    title->goSetting = false;
+                    title->goNext = false;
                 }
                 else if (currentScene == SceneType::SELECT_SCENE && nextSceneType == SceneType::GAME_SCENE) 
                 {
