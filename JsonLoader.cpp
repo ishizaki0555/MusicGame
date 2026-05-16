@@ -1,11 +1,11 @@
-// ========================================
+ï»¿// ========================================
 // 
 // MusicGame Project
 // 
 // ========================================
 // 
 // JsonLoader.cpp
-// Jsonƒtƒ@ƒCƒ‹‚ð“Ç‚Ýž‚Þ‹@”\‚ð’ñ‹Ÿ‚µ‚Ü‚·B
+// Jsonãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿è¾¼ã‚€æ©Ÿèƒ½ã‚’æä¾›ã—ã¾ã™ã€‚
 // 
 //========================================
 
@@ -13,35 +13,35 @@
 #include <windows.h>
 #include <string>
 
-// @brief ƒfƒtƒHƒ‹ƒgƒRƒ“ƒXƒgƒ‰ƒNƒ^
+// @brief ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 JsonLoader::JsonLoader(){}
 
-// @brief ƒfƒtƒHƒ‹ƒgƒfƒXƒgƒ‰ƒNƒ^
+// @brief ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 JsonLoader::~JsonLoader(){}
 
-// @brief Žw’è‚³‚ê‚½ƒpƒX‚©‚ç JSON ƒtƒ@ƒCƒ‹‚ð“Ç‚Ýž‚Þ
-// @param path JSON ƒtƒ@ƒCƒ‹‚ÌƒpƒX
+// @brief æŒ‡å®šã•ã‚ŒãŸãƒ‘ã‚¹ã‹ã‚‰ JSON ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿è¾¼ã‚€
+// @param path JSON ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹
 nlohmann::json JsonLoader::Load(const std::filesystem::path& path)
 {
-    // Žw’è‚Ìƒtƒ@ƒCƒ‹‚ðŠJ‚­‚½‚ß‚Ìƒnƒ“ƒhƒ‹‚ðì¬
+    // æŒ‡å®šã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ããŸã‚ã®ãƒãƒ³ãƒ‰ãƒ«ã‚’ä½œæˆ
     HANDLE hFile = CreateFileW(
-        path.wstring().c_str(),     // ƒtƒ@ƒCƒ‹ƒpƒX
-        GENERIC_READ,               // “Ç‚ÝŽæ‚èƒAƒNƒZƒX
-        FILE_SHARE_READ,            // ‘¼‚ÌƒvƒƒZƒX‚à“Ç‚ÝŽæ‚è‰Â”\
-        nullptr,                    // ƒZƒLƒ…ƒŠƒeƒB‘®«
-		OPEN_EXISTING,			    // Šù‘¶‚Ìƒtƒ@ƒCƒ‹‚ðŠJ‚­  
-        FILE_ATTRIBUTE_NORMAL,      // ’Êí‚Ìƒtƒ@ƒCƒ‹‘®«
-        nullptr                     // ƒeƒ“ƒvƒŒ[ƒgƒtƒ@ƒCƒ‹‚È‚µ
+        path.wstring().c_str(),     // ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹
+        GENERIC_READ,               // èª­ã¿å–ã‚Šã‚¢ã‚¯ã‚»ã‚¹
+        FILE_SHARE_READ,            // ä»–ã®ãƒ—ãƒ­ã‚»ã‚¹ã‚‚èª­ã¿å–ã‚Šå¯èƒ½
+        nullptr,                    // ã‚»ã‚­ãƒ¥ãƒªãƒ†ã‚£å±žæ€§
+		OPEN_EXISTING,			    // æ—¢å­˜ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ã  
+        FILE_ATTRIBUTE_NORMAL,      // é€šå¸¸ã®ãƒ•ã‚¡ã‚¤ãƒ«å±žæ€§
+        nullptr                     // ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ãªã—
     );
 
-    //  ƒtƒ@ƒCƒ‹‚ªŠJ‚¯‚È‚©‚Á‚½‚ç‚©‚ç‚ÌJson‚ð•Ô‚·
+    //  ãƒ•ã‚¡ã‚¤ãƒ«ãŒé–‹ã‘ãªã‹ã£ãŸã‚‰ã‹ã‚‰ã®Jsonã‚’è¿”ã™
     if (hFile == INVALID_HANDLE_VALUE)
     {
-        std::wcout << L"JSON ƒtƒ@ƒCƒ‹‚ðŠJ‚¯‚Ü‚¹‚ñ: " << path.wstring() << std::endl;
+        std::wcout << L"JSON ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ã‘ã¾ã›ã‚“: " << path.wstring() << std::endl;
         return nlohmann::json();
     }
 
-    // ƒtƒ@ƒCƒ‹ƒTƒCƒY‚ðŽæ“¾‚µ‚ÄAƒoƒbƒtƒ@‚ðŠm•Û
+    // ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºã‚’å–å¾—ã—ã¦ã€ãƒãƒƒãƒ•ã‚¡ã‚’ç¢ºä¿
     DWORD size = GetFileSize(hFile, NULL);
     if (size == INVALID_FILE_SIZE)
     {
@@ -49,31 +49,31 @@ nlohmann::json JsonLoader::Load(const std::filesystem::path& path)
         return nlohmann::json();
     }
 
-    // ƒtƒ@ƒCƒ‹“à—e‚ð“Ç‚ÝŽæ‚é‚½‚ß‚Ìƒoƒbƒtƒ@‚ðì¬
+    // ãƒ•ã‚¡ã‚¤ãƒ«å†…å®¹ã‚’èª­ã¿å–ã‚‹ãŸã‚ã®ãƒãƒƒãƒ•ã‚¡ã‚’ä½œæˆ
     std::string buffer(size, '\0');
     DWORD readBytes = 0;
 
-    // ƒtƒ@ƒCƒ‹‚©‚çƒf[ƒ^‚ð“Ç‚ÝŽæ‚é
+    // ãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚‰ãƒ‡ãƒ¼ã‚¿ã‚’èª­ã¿å–ã‚‹
     if (!ReadFile(hFile, buffer.data(), size, &readBytes, NULL))
     {
         CloseHandle(hFile);
         return nlohmann::json();
     }
 
-    // ƒtƒ@ƒCƒ‹ƒnƒ“ƒhƒ‹‚ð•Â‚¶‚é
+    // ãƒ•ã‚¡ã‚¤ãƒ«ãƒãƒ³ãƒ‰ãƒ«ã‚’é–‰ã˜ã‚‹
     CloseHandle(hFile);
 
-    // Json‚ðƒo[ƒX‚µ‚Ä•Ô‚·
+    // Jsonã‚’ãƒãƒ¼ã‚¹ã—ã¦è¿”ã™
     try
     {
-        // ƒoƒbƒtƒ@‚©‚çJSON‚ðƒo[ƒX‚µ‚Ä•Ô‚·
+        // ãƒãƒƒãƒ•ã‚¡ã‹ã‚‰JSONã‚’ãƒãƒ¼ã‚¹ã—ã¦è¿”ã™
         return nlohmann::json::parse(buffer);
     }
-	// ƒp[ƒXƒGƒ‰[‚ª”­¶‚µ‚½ê‡‚ÍƒGƒ‰[ƒƒbƒZ[ƒW‚ð•\Ž¦‚µ‚Ä‹ó‚ÌJson‚ð•Ô‚·
+	// ãƒ‘ãƒ¼ã‚¹ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ãŸå ´åˆã¯ã‚¨ãƒ©ãƒ¼ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’è¡¨ç¤ºã—ã¦ç©ºã®Jsonã‚’è¿”ã™
     catch (const std::exception& e)
     {
-        // ƒGƒ‰[ƒƒbƒZ[ƒW‚—•\Ž¦
-        std::cout << "JSON ƒp[ƒXƒGƒ‰[: " << e.what() << std::endl;
+        // ã‚¨ãƒ©ãƒ¼ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ï½—è¡¨ç¤º
+        std::cout << "JSON ãƒ‘ãƒ¼ã‚¹ã‚¨ãƒ©ãƒ¼: " << e.what() << std::endl;
         return nlohmann::json();
     }
 }

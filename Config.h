@@ -3,29 +3,30 @@
 
 namespace Config
 {
-    // ‰æ–Ê‰ğ‘œ“x
+    // ç”»é¢è§£åƒåº¦
     extern int screenWidth;
     extern int screenHeight;
+    extern bool isFullScreen;
 
-    // ƒQ[ƒ€İ’è
+    // ã‚²ãƒ¼ãƒ è¨­å®š
     extern float noteSpeed;
 
-    // ‰¹—Êİ’è (0.0f ~ 1.0f)
+    // éŸ³é‡è¨­å®š (0.0f ~ 1.0f)
     extern float masterVolume;
     extern float bgmVolume;
     extern float seVolume;
 
-    // “à•”‰ğ‘œ“xiŒÅ’èj
+    // å†…éƒ¨è§£åƒåº¦ï¼ˆå›ºå®šï¼‰
     constexpr int INTERNAL_WIDTH = 1280;
     constexpr int INTERNAL_HEIGHT = 720;
 
-    // İ’è‚Ìƒ[ƒhEƒZ[ƒu
+    // è¨­å®šã®ãƒ­ãƒ¼ãƒ‰ãƒ»ã‚»ãƒ¼ãƒ–
     void Load();
     void Save();
 
-    // Œ»İÄ¶’†‚ÌBGMƒnƒ“ƒhƒ‹iƒŠƒAƒ‹ƒ^ƒCƒ€‰¹—Ê”½‰f—pj
+    // ç¾åœ¨å†ç”Ÿä¸­ã®BGMãƒãƒ³ãƒ‰ãƒ«ï¼ˆãƒªã‚¢ãƒ«ã‚¿ã‚¤ãƒ éŸ³é‡åæ˜ ç”¨ï¼‰
     extern int currentBgmHandle;
 
-    // ‰¹—Ê•ÏX‚Ì“K—pŠÖ”
+    // éŸ³é‡å¤‰æ›´ã®é©ç”¨é–¢æ•°
     void ApplyVolume();
 }

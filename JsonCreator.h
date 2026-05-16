@@ -1,11 +1,11 @@
-// ========================================
+ï»¿// ========================================
 // 
 // MusicGame Project
 // 
 // ========================================
 // 
 // JsonCrator.h
-// ‰¹Œ¹‚ğ‚Ü‚Æ‚ß‚½Jsonƒtƒ@ƒCƒ‹‚ğì¬‚·‚é‹@”\‚ğ’ñ‹Ÿ‚µ‚Ü‚·B
+// éŸ³æºã‚’ã¾ã¨ã‚ãŸJsonãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä½œæˆã™ã‚‹æ©Ÿèƒ½ã‚’æä¾›ã—ã¾ã™ã€‚
 // 
 //========================================
 
@@ -16,16 +16,16 @@
 
 namespace fs = std::filesystem;
 
-// JsonCreatorƒNƒ‰ƒX
+// JsonCreatorã‚¯ãƒ©ã‚¹
 class JsonCreator
 {
 public:
 
-	// @brief w’è‚³‚ê‚½ƒtƒHƒ‹ƒ_ƒpƒX‚Émusic.json‚ğì¬‚·‚é
-	// @param folderPath ƒtƒHƒ‹ƒ_ƒpƒX
+	// @brief æŒ‡å®šã•ã‚ŒãŸãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹ã«music.jsonã‚’ä½œæˆã™ã‚‹
+	// @param folderPath ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹
 	static void CreateMusicJson(const fs::path& folderPath);
 	
-	// @brief UTF16‚©‚çUTF8‚É•ÏŠ·‚µ‚Ü‚·B
-	// @param wstr •ÏŠ·‚µ‚½‚¢•¶š—ñ
+	// @brief UTF16ã‹ã‚‰UTF8ã«å¤‰æ›ã—ã¾ã™ã€‚
+	// @param wstr å¤‰æ›ã—ãŸã„æ–‡å­—åˆ—
 	static std::string ws2utf8(const std::wstring& wstr);
 };

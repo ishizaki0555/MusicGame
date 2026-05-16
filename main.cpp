@@ -66,8 +66,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     // DXLib 初期設定
     Config::Load();                     // 設定の読み込み
     SetChangeScreenModeGraphicsSystemResetFlag(FALSE); // 解像度変更時にグラフィックリソースを維持
-    SetGraphMode(Config::screenWidth, Config::screenHeight, 32, 60); // 解像度を設定
-    ChangeWindowMode(TRUE);             // ウィンドウモード
+    SetGraphMode(Config::INTERNAL_WIDTH, Config::INTERNAL_HEIGHT, 32, 60); // 論理解像度を設定
+    SetWindowSizeChangeEnableFlag(TRUE, TRUE); // ウィンドウサイズ変更と描画内容の自動拡縮を有効にする
+    ChangeWindowMode(Config::isFullScreen ? FALSE : TRUE);             // ウィンドウモード/フルスクリーンモード切替
+    SetWindowSize(Config::screenWidth, Config::screenHeight); // 設定された物理画面サイズを適用
 
     SetUseZBuffer3D(TRUE);              // Zバッファ使用
     SetWriteZBuffer3D(TRUE);            // Zバッファ書き込み
@@ -116,6 +118,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
         // --- ImGui フレーム開始 ---
         ImGui_ImplDX9_NewFrame();
         ImGui_ImplWin32_NewFrame();
+
+        // 物理ウィンドウサイズに合わせてImGuiの描画サイズとマウス座標を論理解像度に合わせる
+        ImGuiIO& io = ImGui::GetIO();
+        io.DisplaySize = ImVec2((float)Config::INTERNAL_WIDTH, (float)Config::INTERNAL_HEIGHT);
+        
+        // DxLibのGetMousePointは自動拡縮後の論理座標を返す
+        int mx, my;
+        GetMousePoint(&mx, &my);
+        io.AddMousePosEvent((float)mx, (float)my);
+
         ImGui::NewFrame();
 
         // 現在のシーン状態に応じて処理を分岐する

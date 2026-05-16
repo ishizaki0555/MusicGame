@@ -1,4 +1,4 @@
-// dear imgui: Renderer Backend for SDL_GPU
+﻿// dear imgui: Renderer Backend for SDL_GPU
 // This needs to be used along with the SDL3 Platform Backend
 
 // Implemented features:

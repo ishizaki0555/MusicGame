@@ -31,14 +31,15 @@ void SettingScene::Draw()
 	// ====================
 
 	// 画面サイズの選択
-	static const char* resolutions[] = { "1280 x 720", "1600 x 900", "1920 x 1080" };
+	static const char* resolutions[] = { "1280 x 720", "1600 x 900", "1920 x 1080", "1920 x 1080 (Full Screen)" };
 	static int currentRes = -1;
 
 	// 初期設定の解像度に合わせる
 	if (currentRes == -1)
 	{
 		if (Config::screenWidth == 1600) currentRes = 1;
-		else if (Config::screenWidth == 1920) currentRes = 2;
+		else if (Config::screenWidth == 1920 && !Config::isFullScreen) currentRes = 2;
+		else if (Config::screenWidth == 1920 && Config::isFullScreen) currentRes = 3;
 		else currentRes = 0;
 	}
 
@@ -49,16 +50,18 @@ void SettingScene::Draw()
 		// 選択された解像度に応じて画面サイズ変更
 		switch (currentRes)
 		{
-		case 0: Config::screenWidth = 1280; Config::screenHeight = 720; break;
-		case 1: Config::screenWidth = 1600; Config::screenHeight = 900; break;
-		case 2: Config::screenWidth = 1920; Config::screenHeight = 1080; break;
+		case 0: Config::screenWidth = 1280; Config::screenHeight = 720; Config::isFullScreen = false; break;
+		case 1: Config::screenWidth = 1600; Config::screenHeight = 900; Config::isFullScreen = false; break;
+		case 2: Config::screenWidth = 1920; Config::screenHeight = 1080; Config::isFullScreen = false; break;
+		case 3: Config::screenWidth = 1920; Config::screenHeight = 1080; Config::isFullScreen = true; break;
 		}
 	}
 
 	// 画面サイズを反映
 	if (ImGui::Button("Apply Resolution"))
 	{
-		SetGraphMode(Config::screenWidth, Config::screenHeight, 32);
+		ChangeWindowMode(Config::isFullScreen ? FALSE : TRUE);
+		SetWindowSize(Config::screenWidth, Config::screenHeight);
 		Config::Save();
 	}
 	ImGui::Separator();

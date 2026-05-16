@@ -1,11 +1,11 @@
-// ========================================
+ï»¿// ========================================
 // 
 // MusicGame Project
 // 
 // ========================================
 // 
 // ResultScene.h
-// ƒQ[ƒ€ƒvƒŒƒCŒã‚ÌƒŠƒUƒ‹ƒg‰æ–Ê‚Ì‹@”\‚ğ’ñ‹Ÿ‚µ‚Ü‚·
+// ã‚²ãƒ¼ãƒ ãƒ—ãƒ¬ã‚¤å¾Œã®ãƒªã‚¶ãƒ«ãƒˆç”»é¢ã®æ©Ÿèƒ½ã‚’æä¾›ã—ã¾ã™
 // 
 //========================================
 
@@ -13,67 +13,67 @@
 #include <DxLib.h>
 #include <string>
 
-// ”»’è‚Ìí—Ş
+// åˆ¤å®šã®ç¨®é¡
 enum class JudgeNum
 {
-	PERFECT = 0,	// ƒp[ƒtƒFƒNƒg
-	GREAT,			// ƒOƒŒ[ƒg
-	GOOD,			// ƒOƒbƒh
-	MISS			// ƒ~ƒX
+	PERFECT = 0,	// ãƒ‘ãƒ¼ãƒ•ã‚§ã‚¯ãƒˆ
+	GREAT,			// ã‚°ãƒ¬ãƒ¼ãƒˆ
+	GOOD,			// ã‚°ãƒƒãƒ‰
+	MISS			// ãƒŸã‚¹
 };
 
 class ResultScene
 {
 public:
 	
-	// @brief ƒRƒ“ƒXƒgƒ‰ƒNƒ^
-	// @param score ƒXƒRƒA
-	// @param combo Å‘åƒRƒ“ƒ{
-	// @param perfect perfect”»’è
-	// @param great great”»’è
-	// @param good good”»’è
-	// @param miss miss”»’è
-	// @param songName ‹È–¼
-	// @param banner ƒoƒi[î•ñ
+	// @brief ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+	// @param score ã‚¹ã‚³ã‚¢
+	// @param combo æœ€å¤§ã‚³ãƒ³ãƒœ
+	// @param perfect perfectåˆ¤å®š
+	// @param great greatåˆ¤å®š
+	// @param good goodåˆ¤å®š
+	// @param miss missåˆ¤å®š
+	// @param songName æ›²å
+	// @param banner ãƒãƒŠãƒ¼æƒ…å ±
 	ResultScene(int score, int combo, int perfect, int great, int good, int miss, const std::string& songName, int banner);
 	
-	// @brief ƒfƒXƒgƒ‰ƒNƒ^‚Å‚·
+	// @brief ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã§ã™
 	~ResultScene();
 
-	// @brief XV‚µ‚Ü‚·
+	// @brief æ›´æ–°ã—ã¾ã™
 	void Update();
 
-	// @brief •`‰æ‚µ‚Ü‚·
+	// @brief æç”»ã—ã¾ã™
 	void Draw();
 
-	// @brief UTF8‚©‚çShift-JIS‚É•ÏŠ·‚µ‚Ü‚·
-	// @param •ÏŠ·‚³‚¹‚½‚¢•¶š
+	// @brief UTF8ã‹ã‚‰Shift-JISã«å¤‰æ›ã—ã¾ã™
+	// @param å¤‰æ›ã•ã›ãŸã„æ–‡å­—
 	std::string Utf8ToSjis(const std::string& utf8);
 
-	bool goNext = false;	// Ÿ‚ÌƒV[ƒ“‚É‘JˆÚ‚·‚é‚©‚Ìƒtƒ‰ƒO
-	int bgmHandle = -1;     // ƒŠƒUƒ‹ƒg‰æ–ÊBGM
+	bool goNext = false;	// æ¬¡ã®ã‚·ãƒ¼ãƒ³ã«é·ç§»ã™ã‚‹ã‹ã®ãƒ•ãƒ©ã‚°
+	int bgmHandle = -1;     // ãƒªã‚¶ãƒ«ãƒˆç”»é¢BGM
 
 	bool prevEnter = false;
 	bool prevSpace = false;
 
 private:
 
-	int score;				// ƒXƒRƒA
-	int maxCombo;			// Å‘åƒRƒ“ƒ{
-	int bannerHandle;		// ƒoƒi[î•ñ
-	std::string songName;	// ‹È–¼
-	JudgeNum judgeNum;		// ”»’è‚Ìí—Ş
+	int score;				// ã‚¹ã‚³ã‚¢
+	int maxCombo;			// æœ€å¤§ã‚³ãƒ³ãƒœ
+	int bannerHandle;		// ãƒãƒŠãƒ¼æƒ…å ±
+	std::string songName;	// æ›²å
+	JudgeNum judgeNum;		// åˆ¤å®šã®ç¨®é¡
 
-	int perfectCount = 0;	// Perfect”»’è
-	int greatCount = 0;		// Great”»’è
-	int goodCount = 0;		// Good”»’è
-	int missCount = 0;		// Miss”»’è
+	int perfectCount = 0;	// Perfectåˆ¤å®š
+	int greatCount = 0;		// Greatåˆ¤å®š
+	int goodCount = 0;		// Goodåˆ¤å®š
+	int missCount = 0;		// Missåˆ¤å®š
 
-	// ”»’è‚Ì•¶šF
+	// åˆ¤å®šã®æ–‡å­—è‰²
 	unsigned int judgeTextColor[4] = { GetColor(255, 255, 0) , GetColor(255, 80, 80) , GetColor(80, 255, 120) , GetColor(180, 180, 180) };
 
-	int judgeFont = -1;			// ”»’èƒeƒLƒXƒg•\¦—pƒtƒHƒ“ƒgƒnƒ“ƒhƒ‹
-	int scoreFont = -1;			// ƒXƒRƒA•\¦—pƒtƒHƒ“ƒgƒnƒ“ƒhƒ‹
-	int songNameFont = -1;		// ‹È–¼•\¦—pƒtƒHƒ“ƒgƒnƒ“ƒhƒ‹
-	int comboFont = -1;			// ƒRƒ“ƒ{•\¦—pƒtƒHƒ“ƒgƒnƒ“ƒhƒ‹
+	int judgeFont = -1;			// åˆ¤å®šãƒ†ã‚­ã‚¹ãƒˆè¡¨ç¤ºç”¨ãƒ•ã‚©ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ«
+	int scoreFont = -1;			// ã‚¹ã‚³ã‚¢è¡¨ç¤ºç”¨ãƒ•ã‚©ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ«
+	int songNameFont = -1;		// æ›²åè¡¨ç¤ºç”¨ãƒ•ã‚©ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ«
+	int comboFont = -1;			// ã‚³ãƒ³ãƒœè¡¨ç¤ºç”¨ãƒ•ã‚©ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ«
 };

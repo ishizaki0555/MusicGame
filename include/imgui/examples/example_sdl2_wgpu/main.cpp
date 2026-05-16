@@ -1,4 +1,4 @@
-// Dear ImGui: standalone example application for using SDL2 + WebGPU
+﻿// Dear ImGui: standalone example application for using SDL2 + WebGPU
 // - Emscripten is supported for publishing on web. See https://emscripten.org.
 // - Dawn is used as a WebGPU implementation on desktop.
 

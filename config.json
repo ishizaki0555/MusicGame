@@ -1,8 +1,9 @@
 {
     "bgmVolume": 1.0,
-    "masterVolume": 0.4569999873638153,
-    "noteSpeed": 0.5,
-    "screenHeight": 720,
-    "screenWidth": 1280,
+    "isFullScreen": false,
+    "masterVolume": 0.4779999852180481,
+    "noteSpeed": 1.1160000562667847,
+    "screenHeight": 1080,
+    "screenWidth": 1920,
     "seVolume": 1.0
 }

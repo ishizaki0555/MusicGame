@@ -1,4 +1,4 @@
-// dear imgui: Platform Backend for SDL3
+﻿// dear imgui: Platform Backend for SDL3
 // This needs to be used along with a Renderer (e.g. SDL_GPU, DirectX11, OpenGL3, Vulkan..)
 // (Info: SDL3 is a cross-platform general purpose library for handling windows, inputs, graphics context creation, etc.)
 

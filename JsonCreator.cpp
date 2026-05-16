@@ -1,57 +1,57 @@
-// ========================================
+ï»¿// ========================================
 // 
 // MusicGame Project
 // 
 // ========================================
 // 
 // JsonCrator.cpp
-// ‰¹Œ¹‚ğ‚Ü‚Æ‚ß‚½Jsonƒtƒ@ƒCƒ‹‚ğì¬‚·‚é‹@”\‚ğ’ñ‹Ÿ‚µ‚Ü‚·B
+// éŸ³æºã‚’ã¾ã¨ã‚ãŸJsonãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä½œæˆã™ã‚‹æ©Ÿèƒ½ã‚’æä¾›ã—ã¾ã™ã€‚
 // 
 //========================================
 
 #include "JsonCreator.h"
 
-// @brief w’è‚³‚ê‚½ƒtƒHƒ‹ƒ_ƒpƒX‚Émusic.json‚ğì¬‚·‚é
-// @param folderPath ƒtƒHƒ‹ƒ_ƒpƒX
+// @brief æŒ‡å®šã•ã‚ŒãŸãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹ã«music.jsonã‚’ä½œæˆã™ã‚‹
+// @param folderPath ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹
 void JsonCreator::CreateMusicJson(const fs::path& folderPath)
 {
-    // JsonƒIƒuƒWƒFƒNƒg‚ğì¬
+    // Jsonã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ä½œæˆ
     nlohmann::json json;
     json["musics"] = nlohmann::json::array();
 
-    // ƒtƒHƒ‹ƒ_“à‚ÌƒTƒuƒtƒHƒ‹ƒ_‚ğŒŸõ
+    // ãƒ•ã‚©ãƒ«ãƒ€å†…ã®ã‚µãƒ–ãƒ•ã‚©ãƒ«ãƒ€ã‚’æ¤œç´¢
     std::wstring search = folderPath.wstring() + L"\\*";
 
-	// FindFirstFileW ‚Æ FindNextFileW ‚ğg—p‚µ‚ÄƒTƒuƒtƒHƒ‹ƒ_‚ğ—ñ‹“
+	// FindFirstFileW ã¨ FindNextFileW ã‚’ä½¿ç”¨ã—ã¦ã‚µãƒ–ãƒ•ã‚©ãƒ«ãƒ€ã‚’åˆ—æŒ™
     WIN32_FIND_DATAW fd;
     HANDLE hFind = FindFirstFileW(search.c_str(), &fd);
 
-	// ƒtƒHƒ‹ƒ_‚ªŒ©‚Â‚©‚ç‚È‚¢ê‡‚ÍI—¹
+	// ãƒ•ã‚©ãƒ«ãƒ€ãŒè¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã¯çµ‚äº†
     if (hFind == INVALID_HANDLE_VALUE)
     {
         return;
     }
 
-	// ƒTƒuƒtƒHƒ‹ƒ_‚ğƒ‹[ƒv‚µ‚ÄAmusic.xxx ‚ğ’T‚·
+	// ã‚µãƒ–ãƒ•ã‚©ãƒ«ãƒ€ã‚’ãƒ«ãƒ¼ãƒ—ã—ã¦ã€music.xxx ã‚’æ¢ã™
     do
     {
-        // ƒfƒBƒŒƒNƒgƒŠ‚©‚Ç‚¤‚©‚ğŠm”F
+        // ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‹ã©ã†ã‹ã‚’ç¢ºèª
         if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         {
-			// "." ‚Æ ".." ‚ğƒXƒLƒbƒv
+			// "." ã¨ ".." ã‚’ã‚¹ã‚­ãƒƒãƒ—
             if (wcscmp(fd.cFileName, L".") == 0 ||
                 wcscmp(fd.cFileName, L"..") == 0)
                 continue;
 
-			// ƒTƒuƒtƒHƒ‹ƒ_‚ÌƒpƒX‚ğì¬
+			// ã‚µãƒ–ãƒ•ã‚©ãƒ«ãƒ€ã®ãƒ‘ã‚¹ã‚’ä½œæˆ
             std::wstring subFolder = folderPath.wstring() + L"\\" + fd.cFileName;
 
-            // music.xxx ‚ğ’T‚·
+            // music.xxx ã‚’æ¢ã™
             std::wstring searchMusic = subFolder + L"\\music.*";
             WIN32_FIND_DATAW fd2;
             HANDLE hFind2 = FindFirstFileW(searchMusic.c_str(), &fd2);
 
-			// music.xxx ‚ªŒ©‚Â‚©‚Á‚½ê‡AJson‚É’Ç‰Á
+			// music.xxx ãŒè¦‹ã¤ã‹ã£ãŸå ´åˆã€Jsonã«è¿½åŠ 
             if (hFind2 != INVALID_HANDLE_VALUE)
             {
                 json["musics"].push_back({
@@ -65,23 +65,23 @@ void JsonCreator::CreateMusicJson(const fs::path& folderPath)
 
     } while (FindNextFileW(hFind, &fd));
 
-	// ƒnƒ“ƒhƒ‹‚ğ•Â‚¶‚é
+	// ãƒãƒ³ãƒ‰ãƒ«ã‚’é–‰ã˜ã‚‹
     FindClose(hFind);
 
-	// Jsonƒtƒ@ƒCƒ‹‚É‘‚«‚Ş
+	// Jsonãƒ•ã‚¡ã‚¤ãƒ«ã«æ›¸ãè¾¼ã‚€
     std::ofstream file(folderPath / "musics.json");
     file << json.dump(4);
 }
 
 
-// @brief UTF16‚©‚çUTF8‚É•ÏŠ·‚µ‚Ü‚·B
-// @param wstr •ÏŠ·‚µ‚½‚¢•¶š—ñ
+// @brief UTF16ã‹ã‚‰UTF8ã«å¤‰æ›ã—ã¾ã™ã€‚
+// @param wstr å¤‰æ›ã—ãŸã„æ–‡å­—åˆ—
 std::string JsonCreator::ws2utf8(const std::wstring& wstr)
 {
-	// ‹ó•¶š—ñ‚Ìê‡‚Í‹ó‚ÌUTF-8•¶š—ñ‚ğ•Ô‚·
+	// ç©ºæ–‡å­—åˆ—ã®å ´åˆã¯ç©ºã®UTF-8æ–‡å­—åˆ—ã‚’è¿”ã™
     if (wstr.empty()) return {};
 
-	// UTF-16 ¨ UTF-8 •ÏŠ·‚Ì‚½‚ß‚Ìƒoƒbƒtƒ@ƒTƒCƒY‚ğæ“¾
+	// UTF-16 â†’ UTF-8 å¤‰æ›ã®ãŸã‚ã®ãƒãƒƒãƒ•ã‚¡ã‚µã‚¤ã‚ºã‚’å–å¾—
     int size = WideCharToMultiByte(
         CP_UTF8, 0,
         wstr.c_str(), (int)wstr.size(),
@@ -89,10 +89,10 @@ std::string JsonCreator::ws2utf8(const std::wstring& wstr)
         nullptr, nullptr
     );
 
-	// •ÏŠ·Œã‚ÌUTF-8•¶š—ñ‚ğŠi”[‚·‚é‚½‚ß‚Ìƒoƒbƒtƒ@‚ğì¬
+	// å¤‰æ›å¾Œã®UTF-8æ–‡å­—åˆ—ã‚’æ ¼ç´ã™ã‚‹ãŸã‚ã®ãƒãƒƒãƒ•ã‚¡ã‚’ä½œæˆ
     std::string result(size, 0);
 
-	// UTF-16 ¨ UTF-8 •ÏŠ·‚ğÀs
+	// UTF-16 â†’ UTF-8 å¤‰æ›ã‚’å®Ÿè¡Œ
     WideCharToMultiByte(
         CP_UTF8, 0,
         wstr.c_str(), (int)wstr.size(),

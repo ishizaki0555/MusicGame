@@ -1,4 +1,4 @@
-// dear imgui: Null Platform+Renderer Backends
+﻿// dear imgui: Null Platform+Renderer Backends
 // This is designed if you need to use a blind Dear Imgui context with no input and no output.
 
 // You can use unmodified imgui_impl_* files in your project. See examples/ folder for examples of using this.

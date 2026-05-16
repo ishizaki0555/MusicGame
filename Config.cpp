@@ -8,6 +8,7 @@ namespace Config
 {
     int screenWidth = 1280;
     int screenHeight = 720;
+    bool isFullScreen = false;
     float noteSpeed = 1.0f;
     float masterVolume = 1.0f;
     float bgmVolume = 1.0f;
@@ -29,6 +30,7 @@ namespace Config
 
                 if (j.contains("screenWidth")) screenWidth = j["screenWidth"];
                 if (j.contains("screenHeight")) screenHeight = j["screenHeight"];
+                if (j.contains("isFullScreen")) isFullScreen = j["isFullScreen"];
                 if (j.contains("noteSpeed")) noteSpeed = j["noteSpeed"];
                 if (j.contains("masterVolume")) masterVolume = j["masterVolume"];
                 if (j.contains("bgmVolume")) bgmVolume = j["bgmVolume"];
@@ -46,6 +48,7 @@ namespace Config
         nlohmann::json j;
         j["screenWidth"] = screenWidth;
         j["screenHeight"] = screenHeight;
+        j["isFullScreen"] = isFullScreen;
         j["noteSpeed"] = noteSpeed;
         j["masterVolume"] = masterVolume;
         j["bgmVolume"] = bgmVolume;
