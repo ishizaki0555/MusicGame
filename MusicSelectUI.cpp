@@ -371,7 +371,6 @@ void MusicSelectUI::Update()
         }
     }
 
-
     // 難易度選択
     static int leftTimer = 0;
     static int rightTimer = 0;
@@ -638,9 +637,9 @@ void MusicSelectUI::Draw()
     // ============================
     // バナー
     // ============================
-    int bannerY = 120;
+    int bannerY = 100;
     int bannerW = 500;
-    int bannerH = 250;
+    int bannerH = 300;
 
     if (info.bannerHandle != -1)
     {

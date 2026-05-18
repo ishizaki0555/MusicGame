@@ -13,11 +13,6 @@
 #include <DxLib.h>
 #include <d3d9.h>
 #include <windows.h>
-
-#include "imgui.h"
-#include "imgui_impl_win32.h"
-#include "imgui_impl_dx9.h"
-
 #include "Config.h"
 #include "MusicSelectUI.h"
 #include "SettingScene.h"
@@ -25,14 +20,7 @@
 #include "GameScene.h"
 #include "ResultScene.h"
 
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(
-    HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-    ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam);
-    return 0;
-}
 
 // シーンの種類（画面の切り替え用）
 enum class SceneType
@@ -76,20 +64,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
     SetUseDirect3DVersion(DX_DIRECT3D_9);
 
-	// Windowsのメッセージ処理をフックして、ImGuiがウィンドウイベントを受け取れるようにする
-    SetHookWinProc(WndProc);
-
     // DXLibの初期化に失敗した場合はプログラムを終了する
     if (DxLib_Init() == -1) return -1;   // DXLib 初期化
-
-    // DX9 デバイス取得
-    IDirect3DDevice9* device = (IDirect3DDevice9*)GetUseDirect3DDevice9();
-
-    // ImGui 初期化
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGui_ImplWin32_Init(GetMainWindowHandle());
-    ImGui_ImplDX9_Init(device);
 
     SetDrawScreen(DX_SCREEN_BACK);       // 裏画面に描画
 
@@ -109,26 +85,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     // リザルトシーン
     ResultScene* result = nullptr;
 
+    bool isSettingOverlay = false;
+    bool prevEscMain = false;
+
     // メインループ
-    // Windowsのメッセージ処理を行い、問題なければループを継続する
     while (ProcessMessage() == 0)
     {
         ClearDrawScreen();
-
-        // --- ImGui フレーム開始 ---
-        ImGui_ImplDX9_NewFrame();
-        ImGui_ImplWin32_NewFrame();
-
-        // 物理ウィンドウサイズに合わせてImGuiの描画サイズとマウス座標を論理解像度に合わせる
-        ImGuiIO& io = ImGui::GetIO();
-        io.DisplaySize = ImVec2((float)Config::INTERNAL_WIDTH, (float)Config::INTERNAL_HEIGHT);
-        
-        // DxLibのGetMousePointは自動拡縮後の論理座標を返す
-        int mx, my;
-        GetMousePoint(&mx, &my);
-        io.AddMousePosEvent((float)mx, (float)my);
-
-        ImGui::NewFrame();
 
         // 現在のシーン状態に応じて処理を分岐する
         switch (currentScene)
@@ -168,10 +131,33 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                 break;
 
             case SceneType::SELECT_SCENE:
-                selectUI.Update();
+                if (transState == TransitionState::None) {
+                    bool nowEscMain = (CheckHitKey(KEY_INPUT_ESCAPE) != 0);
+                    if (nowEscMain && !prevEscMain) {
+                        isSettingOverlay = !isSettingOverlay;
+                    }
+                    prevEscMain = nowEscMain;
+                }
+
+                if (isSettingOverlay) {
+                    if (!setting) setting = new SettingScene();
+                    setting->Update();
+                    if (setting->goBack) {
+                        delete setting;
+                        setting = nullptr;
+                        isSettingOverlay = false;
+                    }
+                } else {
+                    selectUI.Update();
+                }
+
                 selectUI.Draw();
+                if (isSettingOverlay && setting) {
+                    setting->Draw();
+                }
+
                 // 遷移中でなく、選曲画面からゲームシーンへの遷移条件を満たした場合
-                if (transState == TransitionState::None && selectUI.createdScene != nullptr) {
+                if (!isSettingOverlay && transState == TransitionState::None && selectUI.createdScene != nullptr) {
                     nextSceneType = SceneType::GAME_SCENE;
                     transState = TransitionState::FadeIn;
                 }
@@ -304,17 +290,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
             SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
         }
 
-        // --- ImGui 描画 ---
-        ImGui::Render();
-        ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-
         ScreenFlip();
     }
-
-    // ImGui 終了
-    ImGui_ImplDX9_Shutdown();
-    ImGui_ImplWin32_Shutdown();
-    ImGui::DestroyContext();
 
     // DXLib終了処理
     DxLib_End();

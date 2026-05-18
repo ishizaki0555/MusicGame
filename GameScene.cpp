@@ -1,4 +1,4 @@
-﻿// ========================================
+// ========================================
 // 
 // MusicGame Project
 // 
@@ -594,18 +594,10 @@ void GameScene::Draw()
     // レーン発光
     DrawLaneFlash3D();
 
-    // 判定文字
-    DrawJudgeText();
-
-    // UI
-    DrawScore();
-    DrawCombo();
-    DrawSongInfo();
-
-    if (!started) return; // 開始前はノーツを描画しない
-
-    // 現在の再生時間と、それに対応するビート（拍数）を取得
-    double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0;
+    if (started)
+    {
+        // 現在の再生時間と、それに対応するビート（拍数）を取得
+        double currentTime = GetSoundCurrentTime(musicHandle) / 1000.0;
     float currentBeat = m_notesData.GetBeatFromTime(currentTime);
     
     // ----------------------------------------
@@ -640,14 +632,21 @@ void GameScene::Draw()
         if ((zStart < LANE_FRONT && zEnd < LANE_FRONT) || (zStart> LANE_DEPTH && zEnd > LANE_DEPTH))
             continue;
 
+        float drawZStart = zStart;
+        float drawZEnd = zEnd;
+
+        // クリップ処理：Z座標が大きすぎるとフルスクリーン時にD3D9で描画バグ（真っ暗）になるのを防ぐ
+        if (drawZStart < LANE_FRONT) drawZStart = LANE_FRONT;
+        if (drawZEnd > LANE_DEPTH) drawZEnd = LANE_DEPTH;
+
         float xCenter = -3 * laneWidth + laneWidth * b.lane + laneWidth / 2;
         float halfWidth = laneWidth / 3;
 
         DrawQuad3D(
-            VGet(xCenter - halfWidth, 0.1f, zStart),
-            VGet(xCenter + halfWidth, 0.1f, zStart),
-            VGet(xCenter + halfWidth, 0.1f, zEnd),
-            VGet(xCenter - halfWidth, 0.1f, zEnd),
+            VGet(xCenter - halfWidth, 0.1f, drawZStart),
+            VGet(xCenter + halfWidth, 0.1f, drawZStart),
+            VGet(xCenter + halfWidth, 0.1f, drawZEnd),
+            VGet(xCenter - halfWidth, 0.1f, drawZEnd),
             LONG_NOTE_TEX
         );
     }
@@ -708,6 +707,15 @@ void GameScene::Draw()
             );
         }
     }
+    } // end if (started)
+
+    // 判定文字
+    DrawJudgeText();
+
+    // UI
+    DrawScore();
+    DrawCombo();
+    DrawSongInfo();
 
     // ============================
     // ポーズ中のUI描画

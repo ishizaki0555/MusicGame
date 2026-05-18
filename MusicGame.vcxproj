@@ -153,13 +153,6 @@
   <ItemGroup>
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="GameScene.cpp" />
-    <ClCompile Include="include\imgui\backends\imgui_impl_dx9.cpp" />
-    <ClCompile Include="include\imgui\backends\imgui_impl_win32.cpp" />
-    <ClCompile Include="include\imgui\imgui.cpp" />
-    <ClCompile Include="include\imgui\imgui_demo.cpp" />
-    <ClCompile Include="include\imgui\imgui_draw.cpp" />
-    <ClCompile Include="include\imgui\imgui_tables.cpp" />
-    <ClCompile Include="include\imgui\imgui_widgets.cpp" />
     <ClCompile Include="JsonCreator.cpp" />
     <ClCompile Include="MusicPlayer.cpp" />
     <ClCompile Include="JsonLoader.cpp" />
@@ -173,8 +166,6 @@
   <ItemGroup>
     <ClInclude Include="Config.h" />
     <ClInclude Include="GameScene.h" />
-    <ClInclude Include="include\imgui\backends\imgui_impl_dx9.h" />
-    <ClInclude Include="include\imgui\backends\imgui_impl_win32.h" />
     <ClInclude Include="MusicPlayer.h" />
     <ClInclude Include="JsonCreator.h" />
     <ClInclude Include="JsonLoader.h" />
