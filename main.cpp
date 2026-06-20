@@ -211,6 +211,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                     selectUI.LoadFont("Fonts/BIZ-UDMinchoM.ttc", 32);
                     selectUI.LoadMusicList();
                 }
+                // タイトル画面と設定画面の相互遷移に伴うリソース管理
 				else if (currentScene == SceneType::SETTING_SCENE && nextSceneType == SceneType::TITLE_SCENE)
                 {
                     delete setting;
@@ -219,11 +220,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                     title->goSetting = false;
                     title->goNext = false;
                 }
+                // 選曲画面と設定画面の相互遷移に伴うリソース管理
                 else if (currentScene == SceneType::SELECT_SCENE && nextSceneType == SceneType::GAME_SCENE) 
                 {
                     game = selectUI.createdScene;
                     selectUI.createdScene = nullptr;
                 }
+                // ゲームシーン内でリトライした場合の再初期化
                 else if (currentScene == SceneType::GAME_SCENE && nextSceneType == SceneType::GAME_SCENE) 
                 {
                     GameScene* newGame = new GameScene(game->GetNotesData(), game->GetBannerHandle(), game->GetIsAutoPlay());

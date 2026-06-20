@@ -36,7 +36,7 @@ ResultScene::ResultScene(int score, int combo, int perfect, int great, int good,
 	PlaySoundMem(bgmHandle, DX_PLAYTYPE_LOOP);
 }
 
-// @brief 更新します
+// @brief デストラクタ
 ResultScene::~ResultScene()
 {
 }

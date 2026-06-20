@@ -130,8 +130,17 @@ void GameScene::AddJudgeText(int lane, int result, int noteIndex)
     {
     case 0: perfectCount++; ratioScore += 5; combo++; break;
     case 1: greatCount++;   ratioScore += 3; combo++; break;
-    case 2: goodCount++;    ratioScore += 1; combo = 0; break;
-    case 3: missCount++;    combo = 0; break;
+    case 2: 
+        goodCount++;
+        ratioScore += 1;
+		if (combo > maxCombo) maxCombo = combo;
+        combo = 0;
+        break;
+    case 3: 
+        missCount++;
+        if (combo > maxCombo) maxCombo = combo;
+        combo = 0;
+        break;
     }
 
     // 現在のノーツを判定済みにして描画を終了する
@@ -403,6 +412,9 @@ void GameScene::Update()
     if (GetSoundCurrentTime(musicHandle) >= GetSoundTotalTime(musicHandle))
     {
         finished = true; // 楽曲終了
+
+        // 最大コンボの最終更新
+        if (combo > maxCombo) maxCombo = combo;
     }
 }
 

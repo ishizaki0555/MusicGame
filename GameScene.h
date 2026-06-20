@@ -43,7 +43,7 @@ public:
     void DrawSongInfo();
 
     int GetScore() const { return score; }           // スコア取得
-    int GetMaxCombo() const { return combo; }        // 最大コンボ取得
+    int GetMaxCombo() const { return maxCombo; }        // 最大コンボ取得
     int GetPerfect() const { return perfectCount; }  // Perfect数取得
     int GetGreat() const { return greatCount; }      // Great数取得
     int GetGood() const { return goodCount; }        // Good数取得
@@ -160,6 +160,7 @@ private:
     // UI関連
     int score = 0;                                   // 表示用スコア
     int combo = 0;                                   // 現在のコンボ
+    int maxCombo = 0;                                // 最大コンボ
     std::string songName;                            // 曲名
     const int JUDGE_BASE_Y = 300;                    // 判定のテキストのY固定座標
 
