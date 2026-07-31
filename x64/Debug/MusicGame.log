@@ -1,0 +1,18 @@
+﻿  GameScene.cpp
+D:\Cpp\MusicGame\MusicGame\GameScene.cpp(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+D:\Cpp\MusicGame\MusicGame\Config.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameScene.cpp' をコンパイルしています)
+  
+D:\Cpp\MusicGame\MusicGame\GameScene.cpp(52,24): warning C4244: '=': 'int' から 'float' への変換です。データが失われる可能性があります。
+D:\Cpp\MusicGame\MusicGame\GameScene.cpp(121,12): warning C4244: '=': 'const int' から 'float' への変換です。データが失われる可能性があります。
+D:\Cpp\MusicGame\MusicGame\GameScene.cpp(164,47): warning C4244: '=': 'LONGLONG' から 'int' への変換です。データが失われる可能性があります。
+D:\Cpp\MusicGame\MusicGame\GameScene.cpp(295,23): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
+D:\Cpp\MusicGame\MusicGame\GameScene.cpp(432,51): warning C4267: '引数': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
+D:\Cpp\MusicGame\MusicGame\GameScene.cpp(509,56): warning C4267: '引数': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
+D:\Cpp\MusicGame\MusicGame\GameScene.cpp(593,63): warning C4267: '引数': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
+D:\Cpp\MusicGame\MusicGame\GameScene.cpp(613,53): warning C4244: '引数': 'double' から 'float' への変換です。データが失われる可能性があります。
+D:\Cpp\MusicGame\MusicGame\GameScene.cpp(750,62): warning C4267: '引数': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
+D:\Cpp\MusicGame\MusicGame\GameScene.cpp(755,73): warning C4267: '引数': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
+D:\Cpp\MusicGame\MusicGame\GameScene.cpp(757,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+D:\Cpp\MusicGame\MusicGame\GameScene.cpp(770,51): warning C4267: '引数': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
+  MusicGame.vcxproj -> D:\Cpp\MusicGame\x64\Debug\MusicGame.exe
